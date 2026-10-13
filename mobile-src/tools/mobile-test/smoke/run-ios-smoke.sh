@@ -27,14 +27,19 @@ POLL_SECONDS="${SMOKE_POLL_SECONDS:-180}"
 # libc exit(), which never returns from node_start, so NodeRunner's post-run
 # PASS write is skipped and only the atexit FAIL fallback fires. Letting the
 # event loop drain returns 0 from node_start -> a clean PASS verdict.
-EXPR="console.log('${MARKER} ' + process.version + ' ' + process.platform + ' ' + process.arch);"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+FLAVOR="${NODEJS_MOBILE_FLAVOR:-full}"
+case "$FLAVOR" in full|lite) ;; *) echo "Invalid build flavor: $FLAVOR" >&2; exit 1 ;; esac
+EXPR="globalThis.NODEJS_MOBILE_EXPECT_FLAVOR = '${FLAVOR}';
+$(cat "$SCRIPT_DIR/mobile-features.js")
+console.log('${MARKER} ' + process.version + ' ' + process.platform + ' ' + process.arch);"
 
 # Launch once; echo the app output to stderr (for log visibility) and print the
 # verdict (PASS | FAIL | "") to stdout for the caller to capture.
 run_once() {
-  local log token docs result lp verdict="" i
+  local log token docs result stdout app_pid verdict="" i
   log="$(mktemp)"
-  token="$(/usr/bin/uuidgen | tr 'A-F' 'a-f' | tr -d '-')"
+  token="$(uuidgen | tr 'A-F' 'a-f' | tr -d '-')"
   xcrun simctl install "$UDID" "$APP" >/dev/null 2>&1
 
   # Decide pass/fail from the durable verdict file NodeRunner writes
@@ -50,26 +55,34 @@ run_once() {
     return 0
   fi
   result="$docs/Documents/result-${token}.txt"
-  rm -f "$result"
+  stdout="$docs/Documents/stdout-${token}.txt"
+  rm -f "$result" "$stdout"
 
-  xcrun simctl launch --console --terminate-running-process "$UDID" "$BUNDLE_ID" \
-    --run-token "$token" -e "$EXPR" >| "$log" 2>&1 &
-  lp=$!
+  # The app already redirects stdout/stderr to its per-token sandbox file.
+  # Use the same launch path as the curated proxy: simctl returns the app PID
+  # without establishing a console FIFO that can stall before Node starts.
+  xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE_ID" \
+    --run-token "$token" -e "$EXPR" >| "$log" 2>&1
+  app_pid="$(sed -nE 's/^.*: ([0-9]+)$/\1/p' "$log" | tail -1)"
   for ((i=0; i<POLL_SECONDS; i++)); do
     if [ -f "$result" ]; then
       verdict=$(tr -d '\r\n' < "$result")
       [ -n "$verdict" ] && break
     fi
-    kill -0 "$lp" 2>/dev/null || { [ -f "$result" ] && verdict=$(tr -d '\r\n' < "$result"); break; }
+    if [ -n "$app_pid" ] && ! kill -0 "$app_pid" 2>/dev/null; then
+      [ -f "$result" ] && verdict=$(tr -d '\r\n' < "$result")
+      break
+    fi
+    if [ -z "$app_pid" ]; then break; fi
     sleep 1
   done
-  kill "$lp" 2>/dev/null || true
-  wait "$lp" 2>/dev/null || true
+  xcrun simctl terminate "$UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
 
   echo "----- app output -----" >&2
+  [ -f "$stdout" ] && cat "$stdout" >&2
   cat "$log" >&2
   echo "----------------------" >&2
-  rm -f "$result" "$log"
+  rm -f "$result" "$stdout" "$log"
   printf '%s' "$verdict"
 }
 

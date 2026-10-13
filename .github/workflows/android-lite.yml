@@ -1,0 +1,211 @@
+name: Private Android 24.22 lite
+run-name: Android App lite · ${{ inputs.operation || 'verify' }} · ${{ github.ref_name }}
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Build SDK only, or build/test and publish a private prerelease
+        type: choice
+        options: [build-and-release, build]
+        default: build-and-release
+      release_tag:
+        description: Optional app-lite-v24.22.0-1 tag; empty creates a unique tag for this run
+        type: string
+        default: ''
+      release_notes:
+        description: Optional additional English release notes
+        type: string
+        default: ''
+  push:
+    branches: [recipe]
+  pull_request:
+    branches: [recipe]
+permissions:
+  contents: read
+concurrency:
+  group: private-android-lite-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  NODEJS_MOBILE_FLAVOR: lite
+  ANDROID_NDK_VERSION: r27d
+  ANDROID_API: '24'
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      base: ${{ steps.plan.outputs.base }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check private repository, exact version and unused tag
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_OPERATION: ${{ inputs.operation || 'build' }}
+          RELEASE_TAG: ${{ inputs.release_tag || '' }}
+        run: python3 scripts/private-release.py preflight
+      - uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/node-upstream-${{ steps.plan.outputs.base }}
+          key: private-upstream-${{ steps.plan.outputs.base }}
+      - run: scripts/private-prepare.sh
+      - name: Check private profile and critical failure handling
+        run: |
+          python3 -m pip install PyYAML
+          python3 scripts/test-private-profile.py source
+          python3 scripts/test-private-release.py
+          python3 scripts/test-android-proxy.py
+          python3 scripts/test-emulator-preparation.py
+          python3 scripts/test-upstream-clone.py
+      - name: Check tracked changes against whitespace rules
+        run: git diff --check -- . ':!patches'
+  build:
+    if: github.event_name == 'workflow_dispatch'
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm, arm64, x86_64]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/node-upstream-${{ needs.prepare.outputs.base }}
+          key: private-upstream-${{ needs.prepare.outputs.base }}
+      - run: scripts/private-prepare.sh
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+          python3 -m pip install setuptools
+      - uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
+        id: ndk
+        with:
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+          add-to-path: false
+      - name: Build and verify the Android lite SDK
+        env:
+          NDK: ${{ steps.ndk.outputs.ndk-path }}
+          ARCH: ${{ matrix.arch }}
+        run: scripts/private-build.sh "$NDK" "$ARCH"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: private-android-lite-${{ matrix.arch }}
+          path: payload
+          retention-days: 30
+          if-no-files-found: error
+  test:
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ORG_GRADLE_PROJECT_testnodeAbis: x86_64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/node-upstream-${{ needs.prepare.outputs.base }}
+          key: private-upstream-${{ needs.prepare.outputs.base }}
+      - run: scripts/private-prepare.sh
+      - uses: actions/download-artifact@v8
+        with:
+          name: private-android-lite-x86_64
+          path: runtime-input
+      - uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
+        id: ndk
+        with:
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+          add-to-path: false
+      - name: Install the test APK's fixed NDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;27.3.13750724'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install test dependencies and stage App contract
+        env:
+          NDK: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          python3 -m pip install setuptools
+          mkdir -p source/out_android/x86_64
+          cp runtime-input/bin/x86_64/libnode.so source/out_android/x86_64/libnode.so
+          cd source
+          npm ci --ignore-scripts --omit=dev --prefix tools/mobile-test/private-app
+          mkdir -p tools/mobile-test/private-cert
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj /CN=localhost -addext subjectAltName=DNS:localhost -keyout tools/mobile-test/private-cert/key.pem -out tools/mobile-test/private-cert/cert.pem
+          # The installed test app copies test/ assets into its writable sandbox.
+          cp -R tools/mobile-test/private-app test/private-app
+          mkdir -p test/smoke test/private-cert
+          cp tools/mobile-test/smoke/mobile-features.js test/smoke/
+          cp tools/mobile-test/private-cert/*.pem test/private-cert/
+          ./tools/mobile-test/addon/build-android-addon.sh "$NDK" x86_64 "$PWD/out_android/x86_64" "$GITHUB_WORKSPACE/runtime-input/include/node" "$PWD/crcnative.node"
+      - name: Enable hardware virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: ./.github/actions/prepare-android-emulator
+      - name: App, HTTP/3, native addon and curated regression gates
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 24
+          target: default
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: bash scripts/private-device-tests.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: private-app-device-test-log
+          path: source/private-app-tests.log
+          if-no-files-found: warn
+          retention-days: 30
+  package:
+    needs: [prepare, build, test]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: private-android-lite-*
+          merge-multiple: true
+          path: private-sdk
+      - run: python3 scripts/private-package.py package private-sdk release-packages
+      - uses: actions/upload-artifact@v7
+        with:
+          name: private-app-lite-sdk
+          path: release-packages
+          retention-days: 90
+          if-no-files-found: error
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'build-and-release'
+    needs: [prepare, package]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+      RELEASE_NOTES: ${{ inputs.release_notes || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: private-app-lite-sdk
+          path: release-packages
+      - uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/node-upstream-${{ needs.prepare.outputs.base }}
+          key: private-upstream-${{ needs.prepare.outputs.base }}
+      - run: scripts/private-prepare.sh
+      - name: Publish only inside the private repository
+        run: python3 scripts/private-release.py publish

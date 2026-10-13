@@ -1,0 +1,19 @@
+{
+  "name": "danmu-android-lite-h3",
+  "node_line": 24,
+  "android_api": 24,
+  "ndk": "r27d",
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86_64"
+  ],
+  "icu_profile": "danmu-lite.json",
+  "quic": true,
+  "quic_default_enabled": true,
+  "jit": true,
+  "native_wasm": true,
+  "pointer_compression_64bit": true,
+  "release_tag_prefix": "app-lite-v",
+  "source_base": "a5d0eb95dd03b90986ad1a7c0cd3f2de1a0f383c"
+}

@@ -7,6 +7,24 @@ the patches are files, and the upgrade is an ordinary reviewable PR.
 Expect a handful of small conflicts resolvable in minutes — plus,
 occasionally, one that only the compile catches (see the warning below).
 
+## Preview an upstream release proposal
+
+To build a release PR before its official tag exists, pin its full
+40-character commit SHA in `upstream-base.txt`. `scripts/clone-upstream.sh`
+supports both tags and immutable commits, including the CI source cache and
+per-patch configure checks. It records the exact baseline as local Git
+metadata for the test-edit audit without creating an upstream release tag.
+Never follow a moving proposal branch.
+
+Update the mobile version header and CHANGELOG for the preview, regenerate
+the patches and tree checksum, and open an upgrade PR against `recipe`.
+The upgrade builds both Android/iOS flavors, runs the full device gates and
+packages versioned CI previews. Cut release and publication require an
+official upstream tag on this line. Once the tag exists, compare it against
+the pinned proposal, update the pin, regenerate and rerun the gates.
+See [the Node 24.22 proposal](UPSTREAM-24.22.md) and the current
+[manual release procedure](RELEASING.md).
+
 ## Re-base the series
 
 ```sh
@@ -221,6 +239,14 @@ runs the whole gate chain and publishes. (If the upgrade PR bumps the
 header itself, its merge becomes the release directly — both work.)
 
 ## Cross-major upgrades (e.g. v24 → v26)
+
+This fork maintains Node 24 on `recipe` and Node 26 on `recipe-v26`.
+Start maintenance work from the matching branch and open PRs against that
+same branch. Keep major upgrades isolated; do not merge `recipe-v26` into
+`recipe`. Shared fixes should be cherry-picked and tested separately.
+The [version-line guide](https://github.com/fogtape/nodejs-mobile/blob/recipe-v26/docs/VERSION-LINES.md)
+records each line's toolchain and artifact policy.
+
 
 Same procedure, larger blast radius: bump the base to the new major's LTS
 tag and expect several patches to need rework or deletion (upstream may
