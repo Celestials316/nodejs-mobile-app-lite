@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: lilixu3 <240407887+lilixu3@users.noreply.github.com>
+Date: Tue, 13 Oct 2026 16:40:00 +0800
+Subject: [PATCH] build: private App QUIC runtime default
+
+Make the compiled private Android QUIC module available without changing
+App startup arguments. The explicit disabling flag remains supported.
+---
+ src/node_options.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/node_options.h b/src/node_options.h
+index b55fae0a32..559cb433ed 100644
+--- a/src/node_options.h
++++ b/src/node_options.h
+@@ -133,7 +133,9 @@ class EnvironmentOptions : public Options {
+   bool experimental_stream_iter = false;
+   bool experimental_webstorage = false;
+ #ifndef OPENSSL_NO_QUIC
+-  bool experimental_quic = EXPERIMENTALS_DEFAULT_VALUE;
++  // Private App runtime compiles QUIC and makes node:quic available by default.
++  // The explicit --no-experimental-quic switch still disables it.
++  bool experimental_quic = true;
+ #endif
+   std::string localstorage_file;
+   bool experimental_global_navigator = true;

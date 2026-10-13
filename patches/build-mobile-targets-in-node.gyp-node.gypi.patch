@@ -16,27 +16,24 @@ Co-authored-by: Jaime Bernardo <jaime@janeasystems.com>
 Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 ---
- node.gyp  | 16 ++++++++++++----
+ node.gyp  | 19 +++++++++++++++----
  node.gypi | 22 ++++++++++++++++++----
- 2 files changed, 30 insertions(+), 8 deletions(-)
+ 2 files changed, 33 insertions(+), 8 deletions(-)
 
 diff --git a/node.gyp b/node.gyp
-index 988838e858..66fea75c62 100644
+index 62c748b130..123826f4c3 100644
 --- a/node.gyp
 +++ b/node.gyp
-@@ -68,6 +68,11 @@
+@@ -68,6 +68,8 @@
        'deps/acorn/acorn/dist/acorn.js',
        'deps/acorn/acorn-walk/dist/walk.js',
        'deps/minimatch/index.js',
-+      # mobile: pure-JS WebAssembly polyfill, installed by
-+      # internal/process/pre_execution when the engine ships no WebAssembly
-+      # (iOS runs V8 jitless). Loaded lazily, so builds that never touch
-+      # WebAssembly only pay its ~100 KB of source in the binary.
-+      'deps/polywasm/polywasm.js',
++      # This private Android build retains native V8 WebAssembly; omit the
++      # iOS-only polywasm source from js2c and the shared library.
        '<@(node_builtin_shareable_builtins)',
      ],
      'node_sources': [
-@@ -925,7 +930,8 @@
+@@ -925,7 +927,8 @@
              '<@(node_quic_sources)',
            ],
          }],
@@ -46,7 +43,20 @@ index 988838e858..66fea75c62 100644
            'target_arch=="x64" and '
            'node_target_type=="executable"', {
            'defines': [ 'NODE_ENABLE_LARGE_CODE_PAGES=1' ],
-@@ -1407,8 +1413,9 @@
+@@ -1056,6 +1059,12 @@
+       ],
+ 
+       'conditions': [
++        # Only the Android runtime link gets APS2 packing; host build tools
++        # use the host linker and must remain ordinary Linux executables.
++        [ 'OS=="android"', {
++          'ldflags': [ '-Wl,--pack-dyn-relocs=android',
++                       '-Wl,-z,max-page-size=16384' ],
++        }],
+         [ 'node_builtin_modules_path!=""', {
+           # When loading builtins from disk, JS source files do not need to
+           # trigger rebuilds since the binary reads them at runtime.
+@@ -1422,8 +1431,9 @@
          ['OS=="solaris"', {
            'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
          }],
@@ -58,7 +68,7 @@ index 988838e858..66fea75c62 100644
            'type': 'none',
          }],
          [ 'node_shared=="true"', {
-@@ -1629,7 +1636,8 @@
+@@ -1581,7 +1591,8 @@
          [ 'node_shared_libuv=="false"', {
            'dependencies': [ 'deps/uv/uv.gyp:libuv#host' ],
          }],

@@ -6,6 +6,8 @@
 </tr>
 <tr>
 <td>
+<a href="#24.22.0-1">24.22.0-1 (private App)</a><br/>
+<a href="#24.22.0-0">24.22.0-0</a><br/>
 <a href="#24.21.0-0">24.21.0-0</a><br/>
 <a href="#24.20.0-0">24.20.0-0</a><br/>
 <a href="#24.19.0-2">24.19.0-2</a><br/>
@@ -39,8 +41,49 @@
 </tr>
 </table>
 
+<a id="24.22.0-1"></a>
+## 2026-10-13, Version 24.22.0-1 (Private Android App)
+
+- Build only Android App lite on the Node 24.22 proposal baseline.
+- Enable native QUIC/HTTP/3 by default, preserve the existing danmu ICU,
+  JIT/native WASM and App runtime capabilities.
+- Omit the unused iOS polywasm payload and package-manager installation;
+  pack API23-compatible APS2 relocations while retaining the API24 floor,
+  16 KB pages, hardening and dynamic exports.
+- Replace multi-platform CI with one manual build/test/optional-private-release
+  workflow; use separate private tags, SDK metadata and checksums.
+- See PRIVATE-ANDROID-LITE.md for the profile and test gates.
+
+<a id="24.22.0-0"></a>
+## 2026-10-13, Version 24.22.0-0 (Current)
+
+This prerelease updates the mobile runtime from Node.js 24.21.0 to the
+Node.js 24.22.0 LTS release proposal [nodejs/node#66667](https://github.com/nodejs/node/pull/66667),
+pinned to `a5d0eb95dd03b90986ad1a7c0cd3f2de1a0f383c`. It is built from an
+upstream proposal snapshot; the final official Node.js release may differ.
+
+### Runtime and flavor changes
+
+- **Full:** embed complete ICU data for locale formatting, collation and legacy text decoding. The previous 24.21.0-0 full release used small-ICU; complete ICU data accounts for most of the increased binary size.
+- **Lite:** retain the reviewed `danmu_api` ICU data profile. Both flavors keep the complete ICU API; lite preserves all Node TextDecoder web encodings (including GBK, GB2312 and Big5), English/Chinese/Cantonese/Japanese/Korean locale families, Unicode normalization, IDNA, time zones and segmentation. Other locale-specific formatting may fall back to a retained locale.
+- **Lite omissions:** omit Amaro TypeScript stripping, Inspector, SQLite/Web Storage, single-executable application support and native V8 object-print helpers. Keep HTTP/HTTPS/TLS, crypto, fetch/Undici, filesystem and module loading, streams, compression and WebAssembly support.
+- **Android:** retain JIT and native WebAssembly. Lite uses V8 pointer compression on 64-bit targets and strips its SDK libraries only after verifying that dynamic exports remain unchanged. Direct V8 native addons must match the selected flavor's ABI.
+- **iOS:** retain jitless V8 and the polywasm WebAssembly implementation, without pointer compression. Both packages include arm64 device and arm64 simulator slices.
+- **Mobile compatibility:** rebase the platform patches onto the proposed LTS source and adopt upstream's `V8_ENABLE_WEBASSEMBLY` guard.
+
+### Validation and downloads
+
+- Build Android arm64-v8a, armeabi-v7a and x86_64 libraries and iOS device/simulator frameworks in both full and lite flavors.
+- Require host checks, boot and native-addon smokes, full/lite ICU checks, curated device tests and complete runnable Android/iOS suites in the publication workflow. Runtime validation uses Android emulators and iOS simulators; this release does not claim physical-device validation.
+- Fix Android launch failures before Node starts and improve iOS smoke launch and verdict collection. Preserve in-process Intl and SQLite regression coverage while skipping unsupported mobile child-process probes.
+- Provide four SDK archives with headers: `nodejs-mobile-android-24.22.0-0.zip`, `nodejs-mobile-android-lite-24.22.0-0.zip`, `nodejs-mobile-ios-24.22.0-0.zip` and `nodejs-mobile-ios-lite-24.22.0-0.zip`, plus `SHA256SUMS`.
+
+For `danmu_api`, use the lite package when its retained feature and locale
+profile matches your application. Verify the selected archive against
+`SHA256SUMS` before integration.
+
 <a id="24.21.0-0"></a>
-## 2026-09-14, Version 24.21.0-0 (Current)
+## 2026-09-14, Version 24.21.0-0
 
 ### Notable Changes
 
