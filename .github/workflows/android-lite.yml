@@ -56,7 +56,7 @@ jobs:
           python3 -m pip install PyYAML
           python3 scripts/test-private-profile.py source
           python3 scripts/test-private-release.py
-          python3 scripts/test-android-proxy.py
+          python3 scripts/test-android-proxy.py source
           python3 scripts/test-emulator-preparation.py
           python3 scripts/test-upstream-clone.py
       - name: Check tracked changes against whitespace rules

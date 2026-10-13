@@ -5,11 +5,13 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
-PROXY = ROOT / 'out/tools/mobile-test/android/node-android-proxy.sh'
+SOURCE = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else ROOT / 'out'
+PROXY = SOURCE / 'tools/mobile-test/android/node-android-proxy.sh'
 
 ADB = r'''#!/usr/bin/env python3
 import json, os, pathlib, sys
