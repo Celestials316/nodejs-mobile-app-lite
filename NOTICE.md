@@ -34,4 +34,7 @@ UPSTREAM_REPO=${UPSTREAM_REPO:-https://github.com/nodejs/node.git}
 其余文件（补丁系列、`mobile-src/` 覆盖层、`scripts/`、其余 workflow）与来源提交一致。
 
 说明：`docs/BUILDING.md` 仍会提到"CI 编译器缓存"与 `cache-credentials.yml`，
-那是上游仓库的凭据体系；在本副本中 sccache 后端为空，构建回退为本机磁盘缓存。
+那是上游仓库的凭据体系；本副本没有 R2 凭据，因此不使用 sccache。作为替代，
+`.github/workflows/android-lite.yml` 的 build 作业按"已验证的配方树哈希 +
+架构 + NDK + API"缓存构建好的 libnode payload：命中时跳过数小时的编译，
+只重新上传附件。

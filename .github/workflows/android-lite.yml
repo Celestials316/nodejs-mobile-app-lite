@@ -77,20 +77,46 @@ jobs:
           path: ${{ runner.temp }}/node-upstream-${{ needs.prepare.outputs.base }}
           key: private-upstream-${{ needs.prepare.outputs.base }}
       - run: scripts/private-prepare.sh
-      - run: |
+      # Reuse the payload when this exact recipe has already been built for
+      # this architecture. The key pins every build input: the validated
+      # product tree (expected-tree.txt is the hash of upstream-base +
+      # patches + mobile-src that prepare.sh just re-checked), the private
+      # profile, the build script, the architecture, the NDK and the App API
+      # level. A hit skips the multi-hour clang build entirely; the payload
+      # was stripped and ELF-validated when the entry was written, and the
+      # artifact upload below still runs so downstream jobs are unchanged.
+      - name: Restore the built lite SDK
+        id: libnode-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: payload
+          key: private-libnode-${{ hashFiles('expected-tree.txt', 'private-profile.json', 'scripts/private-build.sh') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
+      - if: steps.libnode-cache.outputs.cache-hit != 'true'
+        run: |
           sudo apt-get update
           sudo apt-get install -y gcc-multilib g++-multilib
           python3 -m pip install setuptools
-      - uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
+      - if: steps.libnode-cache.outputs.cache-hit != 'true'
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
         id: ndk
         with:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
           add-to-path: false
       - name: Build and verify the Android lite SDK
+        if: steps.libnode-cache.outputs.cache-hit != 'true'
         env:
           NDK: ${{ steps.ndk.outputs.ndk-path }}
           ARCH: ${{ matrix.arch }}
         run: scripts/private-build.sh "$NDK" "$ARCH"
+      # Explicit save instead of actions/cache's post step: this runs only
+      # after the Build step above succeeded, so a failed or partial payload
+      # can never enter the cache.
+      - name: Save the built and verified lite SDK
+        if: steps.libnode-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: payload
+          key: private-libnode-${{ hashFiles('expected-tree.txt', 'private-profile.json', 'scripts/private-build.sh') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
       - uses: actions/upload-artifact@v7
         with:
           name: private-android-lite-${{ matrix.arch }}
