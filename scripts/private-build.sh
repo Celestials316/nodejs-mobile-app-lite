@@ -17,5 +17,6 @@ grep -Eq 'ANDROID_REL|ANDROID_RELA' "$RUNNER_TEMP/dynamic-$ABI.txt"
 python3 ../scripts/private-package.py validate-elf "$LIB" --readelf "$TOOLS/llvm-readelf"
 mkdir -p ../payload/bin/"$ABI"
 cp "$LIB" ../payload/bin/"$ABI"/libnode.so
-cp -R out_android/include ../payload/include
+mkdir -p ../payload/include
+cp -R out_android/libnode/include/node ../payload/include/node
 cp LICENSE ../payload/LICENSE
