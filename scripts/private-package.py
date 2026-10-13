@@ -37,7 +37,7 @@ def package(source,out):
     for abi in ABIS:
         p=source/'bin'/abi/'libnode.so';info['files'][f'bin/{abi}/libnode.so']={'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
     (source/'BUILD-INFO.json').write_text(json.dumps(info,indent=2)+'\n')
-    (source/'LICENSE').write_bytes((ROOT/'LICENSE').read_bytes())
+    if not (source/'LICENSE').is_file(): raise ValueError('Missing materialized-source license')
     files=sorted(p for p in source.rglob('*') if p.is_file())
     for p in files:
         relative=p.relative_to(source)

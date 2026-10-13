@@ -38,6 +38,7 @@ class PrivateRelease(unittest.TestCase):
             for abi in mod.ABIS:
                 lib=source/'bin'/abi/'libnode.so';lib.parent.mkdir(parents=True);lib.write_bytes(b'fixture')
             h=source/'include/node/node.h';h.parent.mkdir(parents=True);h.write_text('fixture')
+            (source/'LICENSE').write_text('source-license')
             (source/'secret.txt').write_text('must not be packaged')
             with self.assertRaisesRegex(ValueError,'Unexpected payload'):mod.package(source,root/'out')
     def test_elf_api_floor_and_hardening_are_enforced(self):

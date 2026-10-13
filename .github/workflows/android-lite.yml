@@ -120,7 +120,13 @@ jobs:
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
           add-to-path: false
       - name: Install the test APK's fixed NDK
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;27.3.13750724'
+        run: |
+          # Ignore yes's SIGPIPE, but propagate SDK Manager failures.
+          set +e
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;27.3.13750724'
+          result=${PIPESTATUS[1]}
+          set -e
+          exit "$result"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin

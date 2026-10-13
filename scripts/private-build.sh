@@ -18,3 +18,4 @@ python3 ../scripts/private-package.py validate-elf "$LIB" --readelf "$TOOLS/llvm
 mkdir -p ../payload/bin/"$ABI"
 cp "$LIB" ../payload/bin/"$ABI"/libnode.so
 cp -R out_android/include ../payload/include
+cp LICENSE ../payload/LICENSE
