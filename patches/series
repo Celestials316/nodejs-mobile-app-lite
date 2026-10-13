@@ -19,3 +19,4 @@ ci-remove-upstream-only-workflows-and-config.patch
 lib-install-a-WebAssembly-polyfill-when-the-engine-h.patch
 build-profile-ICU-data-for-danmu_api-lite-runtimes.patch
 build-private-App-QUIC-runtime-default.patch
+deps-ngtcp2-keep-sfparse-out-of-the-libnode-link.patch

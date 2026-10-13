@@ -123,3 +123,4 @@ build-profile-ICU-data-for-danmu_api-lite-runtimes.patch	tools/icu/danmu-lite.js
 build-profile-ICU-data-for-danmu_api-lite-runtimes.patch	tools/icu/icu-generic.gyp
 build-profile-ICU-data-for-danmu_api-lite-runtimes.patch	tools/icu/prepare-mobile-icu.py
 build-private-App-QUIC-runtime-default.patch	src/node_options.h
+deps-ngtcp2-keep-sfparse-out-of-the-libnode-link.patch	deps/ngtcp2/ngtcp2.gyp
