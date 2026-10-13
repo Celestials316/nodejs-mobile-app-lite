@@ -1,6 +1,6 @@
 # Private Android App runtime
 
-This repository belongs to `lilixu3` (account 1) and must remain private.
+This repository is `Celestials316/nodejs-mobile-app-lite` (account 2) and must remain private.
 It builds only Android Node.js 24.22 lite for the user's App. Do not add
 Node 26, iOS or full build jobs, and do not push changes to fogtape's public
 repository. The private flavor is `danmu-android-lite-h3`.

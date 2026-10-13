@@ -1,6 +1,7 @@
 # Private Android Node.js 24.22 App lite
 
-Private runtime recipe for the owner's Android `danmu_api` App. This
+Private runtime recipe in `Celestials316/nodejs-mobile-app-lite` (account 2)
+for the owner's Android `danmu_api` App. This
 repository builds **Node.js 24.22 lite for Android only**, for arm64-v8a,
 armeabi-v7a and x86_64. It does not build Node 26, iOS or full SDKs.
 

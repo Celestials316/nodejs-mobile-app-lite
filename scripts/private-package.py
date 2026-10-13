@@ -31,7 +31,7 @@ def package(source,out):
     info={'profile':'danmu-android-lite-h3','node':'24.22.0','mobile':version,
           'upstream':next(l.strip() for l in (ROOT/'upstream-base.txt').read_text().splitlines() if l.strip() and not l.startswith('#')),
           'source_tree':source_tree,'recipe':os.environ.get('GITHUB_SHA',run('git','-C',str(ROOT),'rev-parse','HEAD').strip()),
-          'run':os.environ.get('GITHUB_RUN_ID'),'repository':os.environ.get('GITHUB_REPOSITORY','lilixu3/nodejs-mobile'),
+          'run':os.environ.get('GITHUB_RUN_ID'),'repository':os.environ.get('GITHUB_REPOSITORY','Celestials316/nodejs-mobile-app-lite'),
           'platform':'android','abis':ABIS,'android_api':24,'ndk':'r27d','quic':True,
           'icu_profile':'danmu-lite','files':{}}
     for abi in ABIS:

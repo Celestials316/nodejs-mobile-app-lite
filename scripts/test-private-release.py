@@ -7,14 +7,15 @@ SPEC=importlib.util.spec_from_file_location('private_release',Path(__file__).wit
 CONTROL=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(CONTROL)
 class PrivateRelease(unittest.TestCase):
     def env(self,**extra):
-        return patch.dict(os.environ,{'GITHUB_REPOSITORY':'lilixu3/nodejs-mobile',
+        return patch.dict(os.environ,{'GITHUB_REPOSITORY':'Celestials316/nodejs-mobile-app-lite',
           'GITHUB_RUN_ID':'42','GITHUB_REF':'refs/heads/recipe',
           'GITHUB_EVENT_NAME':'workflow_dispatch','BUILD_OPERATION':'build-and-release','RELEASE_TAG':'',**extra})
     def test_public_repository_and_other_owner_are_rejected(self):
         with self.env(),patch.object(CONTROL,'api',return_value={'private':False,'visibility':'public'}):
             with self.assertRaises(ValueError):CONTROL.private()
-        with self.env(GITHUB_REPOSITORY='fogtape/nodejs-mobile'):
-            with self.assertRaises(ValueError):CONTROL.private()
+        for repository in ['fogtape/nodejs-mobile','lilixu3/nodejs-mobile']:
+            with self.env(GITHUB_REPOSITORY=repository):
+                with self.assertRaises(ValueError):CONTROL.private()
     def test_only_404_means_absent(self):
         for code in [403,429,500]:
             r=subprocess.CompletedProcess([],1,'',f'HTTP {code}')

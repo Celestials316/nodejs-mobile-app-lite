@@ -1,4 +1,5 @@
 /out/
+/source/
 .DS_Store
 __pycache__/
 out-host/

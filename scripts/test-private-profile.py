@@ -2,6 +2,7 @@
 """Private App configuration and workflow guard regressions."""
 from pathlib import Path
 import importlib.util,json,os,shlex,subprocess,sys,tempfile,unittest
+from unittest.mock import patch
 ROOT=Path(__file__).resolve().parent.parent
 SOURCE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/'out'
 if len(sys.argv)>1: del sys.argv[1]
@@ -61,11 +62,12 @@ class PrivateProfile(unittest.TestCase):
         for job in workflow['jobs'].values():
             self.assertEqual(job['runs-on'],'ubuntu-24.04')
         prepare=str(workflow['jobs']['prepare'])
-        self.assertIn('private',prepare);self.assertIn('lilixu3/nodejs-mobile',(ROOT/'scripts/private-release.py').read_text())
+        self.assertIn('private',prepare);self.assertIn('Celestials316/nodejs-mobile-app-lite',(ROOT/'scripts/private-release.py').read_text())
     def test_icu_resources_and_strip_contract(self):
         spec=importlib.util.spec_from_file_location('flavors',ROOT/'scripts/test-mobile-flavors.py')
-        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-        module.SOURCE=SOURCE
+        module=importlib.util.module_from_spec(spec)
+        with patch.object(sys,'argv',[str(spec.origin),str(SOURCE)]):
+            spec.loader.exec_module(module)
         case=module.MobileFlavors('test_icu_profile_required_resources_exist_in_pinned_data')
         result=unittest.TestResult();case.run(result)
         self.assertTrue(result.wasSuccessful(),result.errors+result.failures)

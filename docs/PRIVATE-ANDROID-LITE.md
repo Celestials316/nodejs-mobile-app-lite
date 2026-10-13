@@ -2,6 +2,7 @@
 
 ## Scope and provenance
 
+The private repository is `Celestials316/nodejs-mobile-app-lite` (account 2).
 Only Node 24.22.0 Android lite is built, using the pinned upstream proposal
 and the reviewed mobile patch stack. The independent private profile and
 `app-lite-v` release tags prevent mixing it with fogtape's public SDKs.

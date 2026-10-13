@@ -1,6 +1,7 @@
 # Private App release
 
-Use the single `android-lite.yml` workflow on `recipe`. Select `build` to
+Use the single `android-lite.yml` workflow on `recipe` in the private
+`Celestials316/nodejs-mobile-app-lite` repository. Select `build` to
 retain tested private artifacts or `build-and-release` to publish a tested
 private prerelease in the same run. Optional `release_tag` selects an unused
 `app-lite-v24.22.0-1[-suffix]` tag; empty uses this workflow's unique run ID.

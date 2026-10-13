@@ -3,7 +3,7 @@
 import argparse,json,os,re,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent.parent
-REPOSITORY='lilixu3/nodejs-mobile'
+REPOSITORY='Celestials316/nodejs-mobile-app-lite'
 def command(*args): return subprocess.check_output(args,text=True).strip()
 def api(path): return json.loads(command('gh','api',path))
 def version():
@@ -14,7 +14,7 @@ def version():
     return '.'.join(map(str,values[:3]))+'-'+str(values[3])
 def private():
     if os.environ.get('GITHUB_REPOSITORY',REPOSITORY)!=REPOSITORY:
-        raise ValueError('Publication only permitted in lilixu3/nodejs-mobile')
+        raise ValueError('Publication only permitted in '+REPOSITORY)
     data=api('repos/'+REPOSITORY)
     if data['private'] is not True or data['visibility']!='private':
         raise ValueError('Refusing to build or publish outside the private repository')
