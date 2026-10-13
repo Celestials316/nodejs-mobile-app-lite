@@ -61,6 +61,7 @@ def publish():
     if custom: note+='\n\n'+custom+'\n'
     note+=f'\n\nRecipe: `{sha}`. Verified source tree: `{tree}`. Workflow run: https://github.com/{REPOSITORY}/actions/runs/{os.environ["GITHUB_RUN_ID"]}.\n'
     notes=Path(os.environ['RUNNER_TEMP'])/'private-publish-notes.md';notes.write_text(note)
+    subprocess.run(['gh','auth','setup-git'],check=True)
     # Snapshot commits preserve the complete source without upstream history import.
     if exists(tag):
         subprocess.run(['git','-C',str(source),'fetch',f'https://github.com/{REPOSITORY}.git',f'refs/tags/{tag}:refs/tags/{tag}'],check=True)
@@ -70,7 +71,6 @@ def publish():
         message=f'Private Android App lite {v}\n\nRecipe-Commit: {sha}\nSource-Tree: {tree}\n'
         commit=subprocess.check_output(['git','-C',str(source),'commit-tree',tree],input=message,text=True).strip()
         subprocess.run(['git','-C',str(source),'tag','-a',tag,commit,'-m',message],check=True)
-        subprocess.run(['gh','auth','setup-git'],check=True)
         subprocess.run(['git','-C',str(source),'push',f'https://github.com/{REPOSITORY}.git',f'refs/tags/{tag}'],check=True)
     r=subprocess.run(['gh','release','view',tag,'--repo',REPOSITORY,'--json','isDraft'],capture_output=True,text=True)
     if r.returncode==0:
