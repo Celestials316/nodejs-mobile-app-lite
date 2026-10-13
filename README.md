@@ -36,7 +36,9 @@ HTTP/3, native-addon and curated regression gates.
 
 The package is `nodejs-mobile-android-app-lite-24.22.0-1.zip`, with the same
 `bin/<abi>/libnode.so` and `include/node/` layout used by the App. It includes
-`BUILD-INFO.json`, LICENSE and a separate `SHA256SUMS` file.
+`BUILD-INFO.json`, LICENSE and a separate `SHA256SUMS` file. Temporary ABI
+artifacts/logs expire after one day; the tested SDK artifact expires after
+seven days. Private release assets remain available with their release.
 Download it with authenticated build tooling; never ship a GitHub token
 inside the App. Rebuild JNI against this package's headers before switching.
 

@@ -95,7 +95,7 @@ jobs:
         with:
           name: private-android-lite-${{ matrix.arch }}
           path: payload
-          retention-days: 30
+          retention-days: 1
           if-no-files-found: error
   test:
     needs: [prepare, build]
@@ -167,7 +167,7 @@ jobs:
           name: private-app-device-test-log
           path: source/private-app-tests.log
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 1
   package:
     needs: [prepare, build, test]
     runs-on: ubuntu-24.04
@@ -183,7 +183,7 @@ jobs:
         with:
           name: private-app-lite-sdk
           path: release-packages
-          retention-days: 90
+          retention-days: 7
           if-no-files-found: error
   release:
     if: github.event_name == 'workflow_dispatch' && inputs.operation == 'build-and-release'
