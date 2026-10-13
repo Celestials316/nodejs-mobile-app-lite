@@ -65,7 +65,12 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     needs: prepare
     runs-on: ubuntu-24.04
-    timeout-minutes: 240
+    # A cold build is ~3 h on a standard runner, but runner generations
+    # vary: run 38443614291 was still compiling v8 healthily when the old
+    # 240-minute cap killed all three legs mid-object. 360 minutes is
+    # GitHub's hosted-runner maximum; cache hits finish this job in
+    # minutes, so the extra headroom only matters for cold runs.
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
