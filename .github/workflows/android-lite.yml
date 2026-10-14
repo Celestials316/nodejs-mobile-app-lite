@@ -83,19 +83,25 @@ jobs:
           key: private-upstream-${{ needs.prepare.outputs.base }}
       - run: scripts/private-prepare.sh
       # Reuse the payload when this exact recipe has already been built for
-      # this architecture. The key pins every build input: the validated
-      # product tree (expected-tree.txt is the hash of upstream-base +
-      # patches + mobile-src that prepare.sh just re-checked), the private
-      # profile, the build script, the architecture, the NDK and the App API
-      # level. A hit skips the multi-hour clang build entirely; the payload
-      # was stripped and ELF-validated when the entry was written, and the
-      # artifact upload below still runs so downstream jobs are unchanged.
+      # this architecture. The key pins every input that can change
+      # libnode.so: the immutable upstream base, the patch series, the
+      # mobile-src files that enter the build (src/, deps/, the android
+      # build scripts), the private profile, the build script, the
+      # architecture, the NDK and the App API level. Device-test tooling and
+      # tests (mobile-src/test, mobile-src/tools/mobile-test) are
+      # deliberately NOT part of the key: they ship in the test APK, never
+      # in libnode.so, and keeping them out means a fix to the on-device
+      # harness reuses the expensive build instead of repeating it — the
+      # same goal NOTICE.md states for the libnode cache. A hit skips the
+      # multi-hour clang build entirely; the payload was stripped and
+      # ELF-validated when the entry was written, and the artifact upload
+      # below still runs so downstream jobs are unchanged.
       - name: Restore the built lite SDK
         id: libnode-cache
         uses: actions/cache/restore@v6
         with:
           path: payload
-          key: private-libnode-${{ hashFiles('expected-tree.txt', 'private-profile.json', 'scripts/private-build.sh') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
+          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
       - if: steps.libnode-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
@@ -121,7 +127,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: payload
-          key: private-libnode-${{ hashFiles('expected-tree.txt', 'private-profile.json', 'scripts/private-build.sh') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
+          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
       - uses: actions/upload-artifact@v7
         with:
           name: private-android-lite-${{ matrix.arch }}
