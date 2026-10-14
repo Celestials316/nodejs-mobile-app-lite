@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ensure repository visibility and duplicate/tag checks fail closed."""
+"""Ensure repository identity and duplicate/tag checks fail closed."""
 import importlib.util,os,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -10,8 +10,13 @@ class PrivateRelease(unittest.TestCase):
         return patch.dict(os.environ,{'GITHUB_REPOSITORY':'Celestials316/nodejs-mobile-app-lite',
           'GITHUB_RUN_ID':'42','GITHUB_REF':'refs/heads/recipe',
           'GITHUB_EVENT_NAME':'workflow_dispatch','BUILD_OPERATION':'build-and-release','RELEASE_TAG':'',**extra})
-    def test_public_repository_and_other_owner_are_rejected(self):
-        with self.env(),patch.object(CONTROL,'api',return_value={'private':False,'visibility':'public'}):
+    def test_identity_is_allowed_public_and_other_owners_rejected(self):
+        # Public visibility is allowed since 2026-10-14 (free standard
+        # runners); the published assets being world-readable was the
+        # reviewed tradeoff. Identity is what the guard still enforces.
+        with self.env(),patch.object(CONTROL,'api',return_value={'full_name':'Celestials316/nodejs-mobile-app-lite'}):
+            CONTROL.private()
+        with self.env(),patch.object(CONTROL,'api',return_value={'full_name':'fogtape/nodejs-mobile'}):
             with self.assertRaises(ValueError):CONTROL.private()
         for repository in ['fogtape/nodejs-mobile','lilixu3/nodejs-mobile']:
             with self.env(GITHUB_REPOSITORY=repository):

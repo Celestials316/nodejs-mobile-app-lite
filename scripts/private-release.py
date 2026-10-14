@@ -16,8 +16,13 @@ def private():
     if os.environ.get('GITHUB_REPOSITORY',REPOSITORY)!=REPOSITORY:
         raise ValueError('Publication only permitted in '+REPOSITORY)
     data=api('repos/'+REPOSITORY)
-    if data['private'] is not True or data['visibility']!='private':
-        raise ValueError('Refusing to build or publish outside the private repository')
+    # Identity boundary, not visibility: the repository went public on
+    # 2026-10-14 to use the free standard runners (published assets are
+    # world-readable; that was the reviewed tradeoff). Forks and rehosted
+    # copies answer with a different full_name — and their GITHUB_REPOSITORY
+    # differs — so they still cannot build or publish under this recipe.
+    if data.get('full_name')!=REPOSITORY:
+        raise ValueError('Refusing to build or publish outside '+REPOSITORY)
     return data
 def exists(tag):
     r=subprocess.run(['gh','api',f'repos/{REPOSITORY}/git/ref/tags/{tag}'],capture_output=True,text=True)
