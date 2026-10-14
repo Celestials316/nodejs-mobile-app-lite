@@ -62,6 +62,25 @@ if [ -e "$ANDROID_HOME/emulator" ]; then
 fi
 mv "$WORK/emulator" "$ANDROID_HOME/emulator"
 
+# Register the pinned emulator as an installed SDK package. The Google
+# archive carries only legacy source.properties metadata, and the SDK tools
+# never treat such a directory as an installed package: `avdmanager create
+# avd` then fails with Error: "emulator" package must be installed! (run
+# 38491039799 hit exactly this on the API 24 device gate — nothing else
+# registers an emulator there, because the API 24 system image declares no
+# emulator dependency while API 30+ images do, which is how the recipe's own
+# emulator jobs stayed green). Write the same single-package package.xml
+# sdkmanager writes for an installed emulator, with the pin's revision, so
+# the SDK sees this exact pinned build at the canonical `emulator/` path.
+[ "$EMULATOR_REVISION_MAJOR.$EMULATOR_REVISION_MINOR.$EMULATOR_REVISION_MICRO" = "$EMULATOR_VERSION" ] || {
+  echo "::error::pin.sh revision variables disagree with EMULATOR_VERSION" >&2
+  exit 1
+}
+sed -e "s/@MAJOR@/$EMULATOR_REVISION_MAJOR/" \
+    -e "s/@MINOR@/$EMULATOR_REVISION_MINOR/" \
+    -e "s/@MICRO@/$EMULATOR_REVISION_MICRO/" \
+    "$ACTION_DIR/emulator-package.xml.in" > "$ANDROID_HOME/emulator/package.xml"
+
 # The emulator action prepends this exact SDK bin directory to PATH, so a
 # separate PATH shim would be shadowed. Keep the original beside its wrapper;
 # its APP_HOME still resolves to the same command-line tools installation.

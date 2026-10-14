@@ -88,6 +88,24 @@ else:
         self.assertIn('checksum-verified', result.stdout)
         self.assertFalse(Path(self.env['FORWARDED']).exists())
 
+    def test_pinned_emulator_registers_as_an_sdk_package(self):
+        # The device stage on API 24 creates its AVD with avdmanager, which
+        # rejects an emulator directory the SDK does not know as a package
+        # ("emulator" package must be installed!). The install must leave a
+        # package.xml behind, exactly where sdkmanager would put it.
+        shutil.copyfile(self.payload, self.archive)
+        result = self.install()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        xml = (self.sdk / 'emulator/package.xml').read_text()
+        self.assertIn('<localPackage path="emulator" obsolete="false">', xml)
+        self.assertIn('xsi:type="ns5:genericDetailsType"', xml)
+        self.assertIn('<revision><major>37</major><minor>2</minor><micro>12</micro></revision>', xml)
+        self.assertIn('<display-name>Android Emulator</display-name>', xml)
+        self.assertIn('<license id="android-sdk-license" type="text">', xml)
+        self.assertIn('<uses-license ref="android-sdk-license"/>', xml)
+        for placeholder in ('@MAJOR@', '@MINOR@', '@MICRO@'):
+            self.assertNotIn(placeholder, xml)
+
     def test_corrupt_cache_and_transfer_are_replaced_only_after_verification(self):
         self.archive.write_bytes(b'corrupt cached response')
         result = self.install(BAD_TRANSFERS='1')
