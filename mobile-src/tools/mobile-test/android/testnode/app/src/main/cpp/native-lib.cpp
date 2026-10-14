@@ -98,6 +98,13 @@ Java_nodejsmobile_test_testnode_MainActivity_startNodeWithArguments(
     const char* path_path = env->GetStringUTFChars(nodePath, 0);
     setenv("NODE_PATH", path_path, 1);
 
+    // Android has no /tmp: without TMPDIR, os.tmpdir() resolves to "/tmp" and
+    // mkdtemp() on the device fails with ENOENT (run 38512303833, runtime-
+    // smoke.cjs). The writable tree root doubles as scratch space here — the
+    // same contract run-android-smoke.sh spells out as TMPDIR=$DEST for
+    // direct on-device binary runs.
+    setenv("TMPDIR", path_path, 1);
+
     // Build the per-launch verdict file path (<filesDir>/result-<token>.txt) and
     // record the launching pid, before registering atexit (which runs after the
     // JNI frame is gone, so it can't touch JNIEnv).
