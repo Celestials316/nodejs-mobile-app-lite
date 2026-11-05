@@ -19,11 +19,11 @@ Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 Co-authored-by: João Matos <joao@tritao.eu>
 ---
- common.gypi | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 115 insertions(+), 4 deletions(-)
+ common.gypi | 124 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 120 insertions(+), 4 deletions(-)
 
 diff --git a/common.gypi b/common.gypi
-index a8dbd9ba13..e7a961dbcc 100644
+index a8dbd9ba13..5914a32e91 100644
 --- a/common.gypi
 +++ b/common.gypi
 @@ -117,7 +117,7 @@
@@ -68,11 +68,16 @@ index a8dbd9ba13..e7a961dbcc 100644
          'xcode_settings': {
            'OTHER_CFLAGS+': [
              '-fno-omit-frame-pointer',
-@@ -622,11 +639,13 @@
+@@ -622,11 +639,18 @@
            }],
            ['_toolset=="host"', {
              'conditions': [
 -              [ 'host_arch=="ia32"', {
++              # nodejs-mobile patch: 32-bit host tools (the arm target) link
++              # Node 27 simdutf atomics against the system atomic library.
++              ['OS=="android" and clang==1', {
++                'libraries': ['-latomic'],
++              }],
 +              # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
 +              [ 'host_arch=="ia32" or (host_arch=="x64" and (target_arch=="ia32" or target_arch=="arm"))', {
                  'cflags': [ '-m32' ],
@@ -84,7 +89,7 @@ index a8dbd9ba13..e7a961dbcc 100644
                  'cflags': [ '-m64' ],
                  'ldflags': [ '-m64' ],
                }],
-@@ -808,6 +827,98 @@
+@@ -808,6 +832,98 @@
            }],
          ],
        }],
