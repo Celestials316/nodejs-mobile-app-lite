@@ -22,7 +22,7 @@ The upgrade builds both Android/iOS flavors, runs the full device gates and
 packages versioned CI previews. Cut release and publication require an
 official upstream tag on this line. Once the tag exists, compare it against
 the pinned proposal, update the pin, regenerate and rerun the gates.
-See [the Node 24.22 proposal](UPSTREAM-24.22.md) and the current
+See [the Node 24.22 proposal](UPSTREAM-24.22.md), [the Node 27 alpha notes](UPSTREAM-27.md), and the current
 [manual release procedure](RELEASING.md).
 
 ## Re-base the series
@@ -240,10 +240,10 @@ header itself, its merge becomes the release directly — both work.)
 
 ## Cross-major upgrades (e.g. v24 → v26)
 
-This fork maintains Node 24 on `recipe` and Node 26 on `recipe-v26`.
+This branch maintains the Node 27 alpha port on `recipe-v27`. The separate `recipe` branch remains Node 24; Node 26 is not built here.
 Start maintenance work from the matching branch and open PRs against that
-same branch. Keep major upgrades isolated; do not merge `recipe-v26` into
-`recipe`. Shared fixes should be cherry-picked and tested separately.
+same branch. Keep major upgrades isolated; do not merge a newer line into
+`recipe` or `recipe-v27`. Shared fixes should be cherry-picked and tested separately.
 The [version-line guide](https://github.com/fogtape/nodejs-mobile/blob/recipe-v26/docs/VERSION-LINES.md)
 records each line's toolchain and artifact policy.
 

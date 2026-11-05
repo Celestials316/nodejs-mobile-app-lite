@@ -13,10 +13,6 @@ deps-v8-disable-trap-handler-mobile-platform-tweaks.patch
 deps-cares-guard-sys-random.h-on-iOS.patch
 deps-mobile-gyp-tweaks-zlib-openssl.patch
 test-mobile-test-harness.patch
-test-skip-adapt-parallel-and-sequential-tests-for-mo.patch
-doc-build-mobile-notes-and-ignores.patch
-ci-remove-upstream-only-workflows-and-config.patch
-lib-install-a-WebAssembly-polyfill-when-the-engine-h.patch
 build-profile-ICU-data-for-danmu_api-lite-runtimes.patch
 build-private-App-QUIC-runtime-default.patch
 deps-ngtcp2-keep-sfparse-out-of-the-libnode-link.patch

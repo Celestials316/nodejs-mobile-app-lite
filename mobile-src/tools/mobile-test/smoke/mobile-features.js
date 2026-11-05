@@ -5,7 +5,8 @@
 const assert = require('node:assert/strict');
 if (process.platform === 'android' || process.platform === 'ios') {
   assert.ok(process.versions.mobile, 'mobile version metadata must be present');
-  assert.equal(process.versions.mobile.split('-')[0], process.versions.node);
+  assert.ok(process.versions.mobile.startsWith(process.versions.node),
+    'mobile version must retain upstream version metadata');
 }
 const flavor = globalThis.NODEJS_MOBILE_EXPECT_FLAVOR ||
   process.env.NODEJS_MOBILE_EXPECT_FLAVOR ||

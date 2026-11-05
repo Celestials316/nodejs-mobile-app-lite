@@ -19,10 +19,10 @@ Co-authored-by: Jaime Bernardo <jaime@janeasystems.com>
  2 files changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/src/node.cc b/src/node.cc
-index 92c5fd8cb6..5bd029b5a2 100644
+index 0b5b305d68..6bda502e51 100644
 --- a/src/node.cc
 +++ b/src/node.cc
-@@ -698,6 +698,8 @@ void ResetStdio() {
+@@ -704,6 +704,8 @@ void ResetStdio() {
        CHECK_NE(err, -1);
      }
  
@@ -31,7 +31,7 @@ index 92c5fd8cb6..5bd029b5a2 100644
      if (s.isatty) {
        sigset_t sa;
        int err;
-@@ -719,6 +721,7 @@ void ResetStdio() {
+@@ -725,6 +727,7 @@ void ResetStdio() {
        // - if the process group is orphaned, e.g. because the user logged out,
        //   tcsetattr fails with EIO
      }
@@ -40,10 +40,10 @@ index 92c5fd8cb6..5bd029b5a2 100644
  #endif  // __POSIX__
  }
 diff --git a/src/node_internals.h b/src/node_internals.h
-index dc228f8e1e..c0ef621060 100644
+index bb45d73e90..3d6deb6625 100644
 --- a/src/node_internals.h
 +++ b/src/node_internals.h
-@@ -326,7 +326,7 @@ class ThreadPoolWork {
+@@ -327,7 +327,7 @@ class ThreadPoolWork {
  
  // Functions defined in node.cc that are exposed via the bootstrapper object
  

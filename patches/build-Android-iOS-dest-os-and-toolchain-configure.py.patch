@@ -23,12 +23,12 @@ Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 Co-authored-by: Vincent Breitmoser <look@my.amazin.horse>
 ---
- android_configure.py | 52 +++++++++++++++++++++++++++++++-------------
+ android_configure.py | 53 +++++++++++++++++++++++++++++++-------------
  configure.py         |  8 +++++++
- 2 files changed, 45 insertions(+), 15 deletions(-)
+ 2 files changed, 46 insertions(+), 15 deletions(-)
 
 diff --git a/android_configure.py b/android_configure.py
-index 5cea0393f4..9b8c0c8848 100644
+index 5cea0393f4..d9c3ca21b8 100644
 --- a/android_configure.py
 +++ b/android_configure.py
 @@ -1,25 +1,14 @@
@@ -68,7 +68,7 @@ index 5cea0393f4..9b8c0c8848 100644
      toolchain_path = android_ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64"
  
  elif platform.system() == "Linux":
-@@ -65,13 +54,46 @@ elif platform.system() == "Linux":
+@@ -65,13 +54,47 @@ elif platform.system() == "Linux":
  os.environ['PATH'] += os.pathsep + toolchain_path + "/bin"
  os.environ['CC'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" +  "clang"
  os.environ['CXX'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" + "clang++"
@@ -104,9 +104,10 @@ index 5cea0393f4..9b8c0c8848 100644
 +print("Build profile: danmu-android-lite-h3")
 +intl = "full-icu"
 +GYP_DEFINES += " node_mobile_icu_profile=danmu-lite.json"
-+extra_flags = (" --experimental-quic --without-npm --without-corepack"
++extra_flags = (" --experimental-quic --without-npm"
 +               " --without-amaro --without-inspector --without-sqlite"
-+               " --disable-single-executable-application --v8-disable-object-print")
++               " --without-ffi --disable-single-executable-application"
++               " --v8-disable-object-print --v8-disable-temporal-support")
 +# Preserve the public lite memory model and direct V8-addon ABI.
 +if arch in ("arm64", "x64"):
 +    extra_flags += " --experimental-enable-pointer-compression"
@@ -117,10 +118,10 @@ index 5cea0393f4..9b8c0c8848 100644
 -    os.system("./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling")
 +    sys.exit(os.system("./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --with-intl=" + intl + extra_flags + " --cross-compiling --shared") >> 8)
 diff --git a/configure.py b/configure.py
-index b826e24e3f..65e3255d10 100755
+index 298c7eb1cb..b7c80a7233 100755
 --- a/configure.py
 +++ b/configure.py
-@@ -1119,6 +1119,11 @@ parser.add_argument('-C',
+@@ -1280,6 +1280,11 @@ parser.add_argument('-C',
      default=None,
      help=argparse.SUPPRESS)
  
@@ -132,7 +133,7 @@ index b826e24e3f..65e3255d10 100755
  parser.add_argument('--clang-cl',
      action='store',
      dest='clang_cl',
-@@ -1628,6 +1633,9 @@ def configure_node_cctest_sources(o):
+@@ -1878,6 +1883,9 @@ def configure_node_cctest_sources(o):
      SearchFiles('test/cctest', 'h')
  
  def configure_node(o):

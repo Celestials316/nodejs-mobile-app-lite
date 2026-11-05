@@ -445,7 +445,7 @@ runs the app. A specific device/emulator can be targeted with `DEVICE_ID=<id>`
 ### Android emulator (or device)
 
 Requires a **Linux** host (Android can't cross-build on macOS — see
-[BUILDING.md](./BUILDING.md)), NDK r27d, JDK 17, and `adb`.
+[BUILDING.md](./BUILDING.md)), NDK r29, JDK 17, and `adb`.
 
 ```sh
 ./tools/android_build.sh "$ANDROID_NDK_HOME" 24 x86_64   # build libnode (x86_64 for an emulator)

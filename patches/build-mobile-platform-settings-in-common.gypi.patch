@@ -19,14 +19,14 @@ Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 Co-authored-by: João Matos <joao@tritao.eu>
 ---
- common.gypi | 125 +++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 118 insertions(+), 7 deletions(-)
+ common.gypi | 119 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 115 insertions(+), 4 deletions(-)
 
 diff --git a/common.gypi b/common.gypi
-index bc690955d3..b3a74cb587 100644
+index a8dbd9ba13..e7a961dbcc 100644
 --- a/common.gypi
 +++ b/common.gypi
-@@ -115,7 +115,7 @@
+@@ -117,7 +117,7 @@
          'obj_dir%': '<(PRODUCT_DIR)/obj.target',
          'v8_base': '<(PRODUCT_DIR)/obj.target/tools/v8_gypfiles/libv8_snapshot.a',
        }],
@@ -35,7 +35,7 @@ index bc690955d3..b3a74cb587 100644
          'obj_dir%': '<(PRODUCT_DIR)/obj.target',
          'v8_base': '<(PRODUCT_DIR)/libv8_snapshot.a',
        }],
-@@ -226,6 +226,23 @@
+@@ -225,6 +225,23 @@
                }],
              ],
            }],
@@ -59,34 +59,7 @@ index bc690955d3..b3a74cb587 100644
            ['OS=="solaris"', {
              # pull in V8's postmortem metadata
              'ldflags': [ '-Wl,-z,allextract' ]
-@@ -234,7 +251,7 @@
-             # increase performance, number from experimentation
-             'cflags': [ '-qINLINE=::150:100000' ]
-           }],
--          ['OS!="mac" and OS!="win" and OS!="zos"', {
-+          ['OS!="mac" and OS!="ios" and OS!="win" and OS!="zos"', {
-             # -fno-omit-frame-pointer is necessary for the --perf_basic_prof
-             # flag to work correctly. perf(1) gets confused about JS stack
-             # frames otherwise, even with --call-graph dwarf.
-@@ -453,7 +470,7 @@
-       [ 'target_arch=="arm64"', {
-         'msvs_configuration_platform': 'arm64',
-       }],
--      ['asan == 1 and OS != "mac" and OS != "zos"', {
-+      ['asan == 1 and OS != "mac" and OS != "ios" and OS != "zos"', {
-         'cflags+': [
-           '-fno-omit-frame-pointer',
-           '-fsanitize=address',
-@@ -481,7 +498,7 @@
-           }],
-         ],
-       }],
--      ['ubsan == 1 and OS != "mac" and OS != "zos"', {
-+      ['ubsan == 1 and OS != "mac" and OS != "ios" and OS != "zos"', {
-         'cflags+': [
-           '-fno-omit-frame-pointer',
-           '-fsanitize=undefined',
-@@ -490,7 +507,7 @@
+@@ -520,7 +537,7 @@
          'cflags!': [ '-fno-omit-frame-pointer' ],
          'ldflags': [ '-fsanitize=undefined' ],
        }],
@@ -95,7 +68,7 @@ index bc690955d3..b3a74cb587 100644
          'xcode_settings': {
            'OTHER_CFLAGS+': [
              '-fno-omit-frame-pointer',
-@@ -601,11 +618,13 @@
+@@ -622,11 +639,13 @@
            }],
            ['_toolset=="host"', {
              'conditions': [
@@ -111,7 +84,7 @@ index bc690955d3..b3a74cb587 100644
                  'cflags': [ '-m64' ],
                  'ldflags': [ '-m64' ],
                }],
-@@ -773,6 +792,98 @@
+@@ -808,6 +827,98 @@
            }],
          ],
        }],

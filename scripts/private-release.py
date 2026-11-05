@@ -6,11 +6,22 @@ ROOT=Path(__file__).resolve().parent.parent
 REPOSITORY='Celestials316/nodejs-mobile-app-lite'
 def command(*args): return subprocess.check_output(args,text=True).strip()
 def api(path): return json.loads(command('gh','api',path))
+def load_profile():
+    profile=json.loads((ROOT/'private-profile.json').read_text())
+    for field in ('name','node_line','node_version','recipe_branch','android_api',
+                  'ndk','abis','icu_profile','source_base','release_tag_prefix'):
+        if field not in profile: raise ValueError(f'Private profile is missing {field}')
+    return profile
 def version():
     s=(ROOT/'mobile-src/src/node_mobile_version.h').read_text()
     values=[int(re.search(rf'^#define NODE_MOBILE_{field}\s+([0-9]+)$',s,re.M)[1])
             for field in ['MAJOR_VERSION','MINOR_VERSION','PATCH_VERSION','REVISION']]
-    if values[:3]!=[24,22,0]: raise ValueError('This private repository only builds Node 24.22.0')
+    profile=load_profile()
+    expected=tuple(int(part) for part in profile['node_version'].split('.'))
+    if len(expected)!=3 or tuple(values[:3])!=expected:
+        raise ValueError('This private repository only builds Node '+profile['node_version'])
+    if values[0]!=int(profile['node_line']):
+        raise ValueError('Private profile node_line and node_version disagree')
     return '.'.join(map(str,values[:3]))+'-'+str(values[3])
 def private():
     if os.environ.get('GITHUB_REPOSITORY',REPOSITORY)!=REPOSITORY:
@@ -36,23 +47,27 @@ def output(values):
             for key,value in values.items(): f.write(f'{key}={value}\n')
 def preflight():
     private()
+    profile=load_profile()
     v=version()
     pin=next(line.strip() for line in (ROOT/'upstream-base.txt').read_text().splitlines()
              if line.strip() and not line.lstrip().startswith('#'))
-    profile=json.loads((ROOT/'private-profile.json').read_text())
-    if not re.fullmatch('[0-9a-f]{40}',pin) or pin!=profile['source_base'] or profile['node_line']!=24:
-        raise ValueError('Private profile and immutable Node 24 upstream pin disagree')
+    if not re.fullmatch('[0-9a-f]{40}',pin) or pin!=profile['source_base']:
+        raise ValueError('Private profile and immutable Node '+profile['node_version']+' upstream pin disagree')
+    prefix=profile['release_tag_prefix']
     requested=os.environ.get('RELEASE_TAG','').strip()
-    tag=requested or f'app-lite-v{v}-build.{os.environ["GITHUB_RUN_ID"]}'
-    if not re.fullmatch(r'app-lite-v'+re.escape(v)+r'(?:-[A-Za-z0-9][A-Za-z0-9._-]*)?',tag):
-        raise ValueError('Tag must identify this private App version: app-lite-v'+v+'[-suffix]')
+    tag=requested or f'{prefix}{v}-build.{os.environ["GITHUB_RUN_ID"]}'
+    if not re.fullmatch(re.escape(prefix)+re.escape(v)+r'(?:-[A-Za-z0-9][A-Za-z0-9._-]*)?',tag):
+        raise ValueError('Tag must identify this private App version: '+prefix+v+'[-suffix]')
     operation=os.environ.get('BUILD_OPERATION','build')
     if operation not in ['build','build-and-release']:raise ValueError('Unknown operation')
     if operation=='build-and-release':
-        if os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch' or os.environ.get('GITHUB_REF')!='refs/heads/recipe':
-            raise ValueError('Manual release must run on the private recipe branch')
+        expected_ref='refs/heads/'+profile['recipe_branch']
+        if os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch' or os.environ.get('GITHUB_REF')!=expected_ref:
+            raise ValueError('Manual release must run on '+expected_ref)
         if exists(tag):raise ValueError('Tag already exists. Resume its original publish job; no release is overwritten.')
-    output({'version':v,'tag':tag,'base':json.loads((ROOT/'private-profile.json').read_text())['source_base']})
+    output({'version':v,'tag':tag,'base':profile['source_base'],
+            'branch':profile['recipe_branch'],'ndk':profile['ndk'],
+            'android_api':profile['android_api']})
 def publish():
     private()
     v=version();tag=os.environ['RELEASE_TAG'];sha=os.environ['GITHUB_SHA']

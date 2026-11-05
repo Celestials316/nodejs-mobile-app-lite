@@ -1,13 +1,14 @@
 # Private App release
 
-Use the single `android-lite.yml` workflow on `recipe` in the
+Use the single `android-lite.yml` workflow on `recipe-v27` in the
 `Celestials316/nodejs-mobile-app-lite` repository (public since 2026-10-14,
 so standard runners are free; the recipe and published assets are
-world-readable). Select `build` to
-retain tested private artifacts or `build-and-release` to publish a tested
-private prerelease in the same run. Optional `release_tag` selects an unused
-`app-lite-v24.22.0-1[-suffix]` tag; empty uses this workflow's unique run ID.
-`release_notes` appends optional English notes to the reviewed notes file.
+world-readable). Select `build` to retain tested artifacts without publishing,
+or `build-and-release` to publish a tested private prerelease in the same run.
+The default is `build`; publication must be requested explicitly. Optional
+`release_tag` selects an unused `app-lite-v27.0.0-0[-suffix]` tag; empty uses
+this workflow's unique run ID. `release_notes` appends optional English notes
+to the reviewed notes file.
 
 Publication checks the repository identity at preparation and upload,
 validates the source checksum, and packages all three Android App ABIs.
@@ -21,3 +22,6 @@ and rerun its publish job; it checks the existing tag's tree and recipe commit
 and only resumes a draft. Published releases are not overwritten. New build
 runs must use new tags. Changing the source requires committing/regenerating
 the matching recipe tree before dispatch.
+
+Node 27 alpha builds are prereleases and must never be marked latest or
+described as stable. The `recipe` branch remains the separate Node 24 line.

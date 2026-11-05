@@ -6,6 +6,7 @@
 </tr>
 <tr>
 <td>
+<a href="#27.0.0-0">27.0.0-0 (private App alpha)</a><br/>
 <a href="#24.22.0-1">24.22.0-1 (private App)</a><br/>
 <a href="#24.22.0-0">24.22.0-0</a><br/>
 <a href="#24.21.0-0">24.21.0-0</a><br/>
@@ -40,6 +41,21 @@
 </td>
 </tr>
 </table>
+
+<a id="27.0.0-0"></a>
+## 2026-11-05, Version 27.0.0-0 (Private Android App alpha)
+
+- Add the isolated `recipe-v27` branch on Node.js 27.0.0-alpha.0.0.0,
+  pinned to `fe34c8eae5514797d6dc21a4bdec39c9913d9322`.
+- Use upstream OpenSSL 4.1.0 and V8 15.6; keep Android API24 and the three
+  App ABIs (arm64-v8a, armeabi-v7a, x86_64) with NDK r29.
+- Preserve the danmu ICU profile, QUIC/HTTP/3, JIT/native WASM, network/TLS,
+  crypto, compression, workers/processes, async context, VM and Node-API.
+- Trim npm/Corepack, Amaro, Inspector, SQLite/Web Storage, SEA, object-print
+  helpers, FFI and V8 Temporal.
+- Retire three Node-24-specific test/CI/document patches that no longer
+  apply; device validation targets the App contract instead of the unadapted
+  curated suite. This is an experimental alpha, not a stable release.
 
 <a id="24.22.0-1"></a>
 ## 2026-10-13, Version 24.22.0-1 (Private Android App)

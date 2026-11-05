@@ -1,41 +1,46 @@
-# Private Android Node.js 24.22 App lite
+# Private Android Node.js 27 App lite
 
 Private runtime recipe in `Celestials316/nodejs-mobile-app-lite` (account 2)
-for the owner's Android `danmu_api` App. This
-repository builds **Node.js 24.22 lite for Android only**, for arm64-v8a,
-armeabi-v7a and x86_64. It does not build Node 26, iOS or full SDKs.
+for the owner's Android `danmu_api` App. The `recipe-v27` branch builds
+**Node.js 27.0.0-alpha.0.0.0 lite for Android only**, for arm64-v8a,
+armeabi-v7a and x86_64. The existing `recipe` branch remains the Node 24 line.
+This branch does not build iOS or full SDKs.
 
-The source is pinned to the Node 24.22 LTS proposal commit
-`a5d0eb95dd03b90986ad1a7c0cd3f2de1a0f383c`. The App-specific mobile revision
-is `24.22.0-1`. This is an upstream proposal snapshot, not an official Node tag.
-The verified tree is recorded in `expected-tree.txt`.
+The source is pinned to the official Node 27 alpha tag commit
+`fe34c8eae5514797d6dc21a4bdec39c9913d9322`. It bundles upstream OpenSSL
+4.1.0 and V8 15.6. The App-specific mobile revision is `27.0.0-0`. This is an
+experimental alpha, not a stable Node Current release. The verified tree is
+recorded in `expected-tree.txt`.
 
-The private profile adds native QUIC/HTTP/3 and makes `node:quic` available
-by default. It keeps the reviewed danmu ICU profile, JIT/native WebAssembly,
-HTTP/HTTPS/TLS, HTTP/2, DNS/crypto, workers, external-process launching,
-compression, filesystem/module loading and Node-API exports. Existing
-fetch/node-fetch requests remain on their existing transports; HTTP/3
-requires an explicit request path. ECH is not provided by this runtime.
+The lite profile keeps native QUIC/HTTP/3 (enabled by default), the reviewed
+danmu ICU data, JIT/native WebAssembly, HTTP/HTTPS/TLS, HTTP/2, DNS/crypto,
+zlib/Brotli/zstd, workers/child processes, async context, filesystem/module
+loading, VM, AsyncLocalStorage and Node-API exports. It trims npm/Corepack,
+Amaro, Inspector, SQLite/Web Storage, SEA, V8 object-print helpers, FFI and
+V8 Temporal. ECH is not provided. These choices match danmu_api and its
+locked App dependencies rather than a general-purpose Node distribution.
 
 ## Build or release
 
-Open Actions → **Private Android 24.22 lite** → **Run workflow** on `recipe`.
+Open Actions → **Private Android App lite** → **Run workflow** on
+`recipe-v27`.
 
-- `build`: build and test, then retain the SDK as a private Actions artifact.
-- `build-and-release`: the same build/test gates, then publish a private
-  GitHub prerelease. This is the default manual operation.
-- Leave `release_tag` empty for a unique `app-lite-v24.22.0-1-build.<run>` tag,
-  or enter an unused tag beginning `app-lite-v24.22.0-1`.
+- `build` builds and tests, then retains the SDK as an Actions artifact.
+  This is the default manual operation and does not publish a release.
+- `build-and-release` runs the same build/test gates, then publishes a
+  private prerelease. It must be requested explicitly.
+- Leave `release_tag` empty for a unique `app-lite-v27.0.0-0-build.<run>` tag,
+  or enter an unused tag beginning `app-lite-v27.0.0-0`.
 - Optionally supply additional English release notes. Existing tags and
   published releases are never overwritten.
 
-Push and PR events run quick source/profile checks. There are no scheduled
-full/iOS suites, public-repository compiler caches, BrowserStack credentials
-or multi-line release controllers. A manual build compiles three Android
-libraries and uses one API24 emulator session for the App dependency,
-HTTP/3, native-addon and curated regression gates.
+Push and PR events on `recipe` and `recipe-v27` run quick source/profile
+checks. A manual Node 27 build compiles three Android libraries and uses one
+API24 emulator session for runtime, ICU/locale, App dependency, HTTP/3 and
+native-addon gates. The unadapted upstream curated suite is not used on the
+alpha branch.
 
-The package is `nodejs-mobile-android-app-lite-24.22.0-1.zip`, with the same
+The package is `nodejs-mobile-android-app-lite-27.0.0-0.zip`, with the
 `bin/<abi>/libnode.so` and `include/node/` layout used by the App. It includes
 `BUILD-INFO.json`, LICENSE and a separate `SHA256SUMS` file. Temporary ABI
 artifacts/logs expire after one day; the tested SDK artifact expires after
@@ -43,6 +48,7 @@ seven days. Private release assets remain available with their release.
 Download it with authenticated build tooling; never ship a GitHub token
 inside the App. Rebuild JNI against this package's headers before switching.
 
-See [private profile and validation](docs/PRIVATE-ANDROID-LITE.md) and
-[release instructions](docs/RELEASING.md). Existing public release inputs
-are unchanged until consumer integration is explicitly requested.
+See [private profile and validation](docs/PRIVATE-ANDROID-LITE.md),
+[Node 27 alpha notes](docs/UPSTREAM-27.md) and
+[release instructions](docs/RELEASING.md). The App still pins Node 26 until
+its JNI and startup/runtime checks pass against this SDK.

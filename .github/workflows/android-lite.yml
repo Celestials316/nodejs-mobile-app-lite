@@ -1,15 +1,15 @@
-name: Private Android 24.22 lite
+name: Private Android App lite
 run-name: Android App lite · ${{ inputs.operation || 'verify' }} · ${{ github.ref_name }}
 on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Build SDK only, or build/test and publish a private prerelease
+        description: Build and test the SDK, or explicitly publish a private prerelease
         type: choice
-        options: [build-and-release, build]
-        default: build-and-release
+        options: [build, build-and-release]
+        default: build
       release_tag:
-        description: Optional app-lite-v24.22.0-1 tag; empty creates a unique tag for this run
+        description: Optional app-lite-v<mobile-version>[-suffix] tag; empty uses the run ID
         type: string
         default: ''
       release_notes:
@@ -17,9 +17,9 @@ on:
         type: string
         default: ''
   push:
-    branches: [recipe]
+    branches: [recipe, recipe-v27]
   pull_request:
-    branches: [recipe]
+    branches: [recipe, recipe-v27]
 permissions:
   contents: read
 concurrency:
@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   NODEJS_MOBILE_FLAVOR: lite
-  ANDROID_NDK_VERSION: r27d
+  ANDROID_NDK_VERSION: r29
   ANDROID_API: '24'
 jobs:
   prepare:

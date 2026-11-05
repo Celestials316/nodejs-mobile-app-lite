@@ -18,7 +18,7 @@ Co-authored-by: Julia Samól <j.samol@papers.ch>
  2 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/deps/openssl/openssl_no_asm.gypi b/deps/openssl/openssl_no_asm.gypi
-index 8169f605d7..e021093636 100644
+index 78a29e28e9..c2363a1eed 100644
 --- a/deps/openssl/openssl_no_asm.gypi
 +++ b/deps/openssl/openssl_no_asm.gypi
 @@ -13,7 +13,7 @@
@@ -28,9 +28,9 @@ index 8169f605d7..e021093636 100644
 -    }, 'target_arch=="ia32" and OS=="linux"', {
 +    }, 'target_arch=="ia32" and OS in ("linux", "android")', {
        'includes': ['config/archs/linux-elf/no-asm/openssl.gypi'],
-     }, 'target_arch=="ia32" and OS=="mac"', {
-       'includes': ['config/archs/darwin-i386-cc/no-asm/openssl.gypi'],
-@@ -36,7 +36,7 @@
+     }, 'target_arch=="ia32" and OS=="solaris"', {
+       'includes': ['config/archs/solaris-x86-gcc/no-asm/openssl.gypi'],
+@@ -34,7 +34,7 @@
        'includes': ['config/archs/VC-WIN64A/no-asm/openssl.gypi'],
      }, 'target_arch=="arm64" and OS=="win"', {
        'includes': ['config/archs/VC-WIN64-ARM/no-asm/openssl.gypi'],

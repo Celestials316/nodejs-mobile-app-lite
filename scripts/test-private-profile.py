@@ -6,9 +6,10 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parent.parent
 SOURCE=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/'out'
 if len(sys.argv)>1: del sys.argv[1]
+PROFILE=json.loads((ROOT/'private-profile.json').read_text())
 CUTS={'--without-amaro','--without-inspector','--without-sqlite',
       '--disable-single-executable-application','--v8-disable-object-print',
-      '--without-npm','--without-corepack'}
+      '--without-npm','--without-ffi','--v8-disable-temporal-support'}
 class PrivateProfile(unittest.TestCase):
     def configure(self,folder,arch,flavor='lite',code=0):
         ndk=folder/'ndk';ndk.mkdir(exist_ok=True);(ndk/'marker').touch()
@@ -19,7 +20,7 @@ class PrivateProfile(unittest.TestCase):
         program.chmod(0o755)
         command=[sys.executable,'-c',
             "import platform,runpy,sys;platform.system=lambda:'Linux';sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')",
-            str(SOURCE/'android_configure.py'),str(ndk),'24',arch]
+            str(SOURCE/'android_configure.py'),str(ndk),str(PROFILE['android_api']),arch]
         env=dict(os.environ,NODEJS_MOBILE_FLAVOR=flavor);env.pop('NODEJS_MOBILE_SCCACHE',None)
         result=subprocess.run(command,cwd=folder,env=env,capture_output=True,text=True)
         return result,json.loads(capture.read_text()) if capture.exists() else None
@@ -30,6 +31,7 @@ class PrivateProfile(unittest.TestCase):
                 self.assertEqual(result.returncode,0,result.stderr)
                 flags=set(config['flags'])
                 self.assertTrue(CUTS <= flags)
+                self.assertNotIn('--without-corepack', flags)
                 self.assertTrue({'--experimental-quic','--with-intl=full-icu','--shared','--cross-compiling'} <= flags)
                 self.assertIn('node_mobile_icu_profile=danmu-lite.json',config['gyp'])
                 self.assertEqual('--experimental-enable-pointer-compression' in flags,arch!='arm')
@@ -42,7 +44,8 @@ class PrivateProfile(unittest.TestCase):
             result,_=self.configure(Path(d),'arm64',code=7)
             self.assertEqual(result.returncode,7)
     def test_quic_default_native_wasm_and_public_icu_profile(self):
-        self.assertIn('bool experimental_quic = true;', (SOURCE/'src/node_options.h').read_text())
+        options=(SOURCE/'src/node_options.h').read_text()
+        self.assertRegex(options,r'#ifndef OPENSSL_NO_QUIC\s+DEFINE_BOOL_FIELD\(experimental_quic\) = true;')
         self.assertNotIn("'deps/polywasm/polywasm.js'",(SOURCE/'node.gyp').read_text())
         self.assertNotIn("require('internal/deps/polywasm/polywasm')",(SOURCE/'lib/internal/process/pre_execution.js').read_text())
         self.assertIn('en',json.loads((SOURCE/'tools/icu/danmu-lite.json').read_text())['variables']['locales']['only'])
@@ -52,6 +55,9 @@ class PrivateProfile(unittest.TestCase):
         self.assertEqual(names,['android-lite.yml'])
         workflow=yaml.load((ROOT/'.github/workflows/android-lite.yml').read_text(),Loader=yaml.BaseLoader)
         self.assertEqual(workflow['env']['NODEJS_MOBILE_FLAVOR'],'lite')
+        self.assertEqual(workflow['env']['ANDROID_NDK_VERSION'],PROFILE['ndk'])
+        self.assertEqual(workflow['on']['push']['branches'],['recipe','recipe-v27'])
+        self.assertEqual(workflow['on']['workflow_dispatch']['inputs']['operation']['default'],'build')
         self.assertNotIn('schedule',workflow['on'])
         self.assertEqual(workflow['jobs']['build']['strategy']['matrix']['arch'],['arm','arm64','x86_64'])
         self.assertEqual(workflow['jobs']['package']['needs'],['prepare','build','test'])

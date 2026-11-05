@@ -43,11 +43,12 @@ pip install setuptools
 sudo apt-get install -y build-essential git gcc-multilib g++-multilib
 ```
 
-Install Android NDK **r27d** (`27.3.13750724`) via the SDK Manager (the
-`ubuntu-24.04` GitHub runner already ships an NDK 27 at `$ANDROID_NDK_LATEST_HOME`):
+Install Android NDK **r29** (`29.0.14206865`) via the SDK Manager for the
+Node 27 branch. The Java test APK keeps its pinned r27d toolchain; that is a
+separate Gradle input and does not change the runtime build.
 
 ```sh
-sdkmanager "ndk;27.3.13750724"
+sdkmanager "ndk;29.0.14206865"
 ```
 
 ### 1) Get a source tree
@@ -55,8 +56,8 @@ sdkmanager "ndk;27.3.13750724"
 This repository holds the recipe, not the source. Generate a tree from it:
 
 ```sh
-git clone -b recipe https://github.com/nodejs-mobile/nodejs-mobile
-cd nodejs-mobile && scripts/prepare.sh && cd out
+git clone -b recipe-v27 https://github.com/Celestials316/nodejs-mobile-app-lite
+cd nodejs-mobile-app-lite && scripts/prepare.sh && cd out
 ```
 
 All the build commands below run from that `out/` directory. A release tag
@@ -68,12 +69,12 @@ All the build commands below run from that `out/` directory. A release tag
 ./tools/android_build.sh <ndk-path> <sdk-version> [arch]
 ```
 
-- `<ndk-path>` — the installed NDK, e.g. `~/Android/Sdk/ndk/27.3.13750724`
+- `<ndk-path>` — the installed NDK, e.g. `~/Android/Sdk/ndk/29.0.14206865`
 - `<sdk-version>` — minimum Android SDK version as a number, e.g. `24`
 - `[arch]` — `arm`, `arm64`, or `x86_64`; omit to build all three.
 
 ```sh
-./tools/android_build.sh ~/Android/Sdk/ndk/27.3.13750724 24
+./tools/android_build.sh ~/Android/Sdk/ndk/29.0.14206865 24
 ```
 
 Output: `out_android/<abi>/libnode.so` for each ABI (`armeabi-v7a`, `arm64-v8a`,

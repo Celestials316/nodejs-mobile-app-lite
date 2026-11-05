@@ -4,7 +4,8 @@ import argparse,datetime,hashlib,json,os
 from pathlib import Path
 import re,subprocess,zipfile
 ROOT=Path(__file__).resolve().parent.parent
-ABIS=('arm64-v8a','armeabi-v7a','x86_64')
+PROFILE=json.loads((ROOT/'private-profile.json').read_text())
+ABIS=tuple(PROFILE['abis'])
 def run(*args): return subprocess.check_output(args,text=True)
 def validate_elf(path,readelf):
     headers=run(readelf,'-lW',str(path))
@@ -17,7 +18,7 @@ def validate_elf(path,readelf):
     if not re.search(r'ANDROID_REL(?:A)?\)',dynamic):
         raise ValueError(f'{path}: missing API23-compatible APS2 relocation packing')
     if 'RELR' in dynamic:
-        raise ValueError(f'{path}: RELR would raise the API floor above 24')
+        raise ValueError(f'{path}: RELR would raise the API floor above {PROFILE["android_api"]}')
     needed=re.findall(r'Shared library: \[([^]]+)\]',dynamic)
     if set(needed)-{'libc.so','libdl.so','libm.so','liblog.so','libc++_shared.so'}:
         raise ValueError(f'{path}: unexpected external dependencies {needed}')
@@ -27,13 +28,15 @@ def package(source,out):
     for abi in ABIS:
         if not (source/'bin'/abi/'libnode.so').is_file(): raise ValueError(f'Missing {abi}')
     if not (source/'include/node/node.h').is_file(): raise ValueError('Missing JNI/Node headers')
-    source_tree=(ROOT/'expected-tree.txt').read_text().splitlines()[-1]
-    info={'profile':'danmu-android-lite-h3','node':'24.22.0','mobile':version,
+    source_tree=next(line for line in (ROOT/'expected-tree.txt').read_text().splitlines()
+                     if re.fullmatch('[0-9a-f]{40}',line))
+    info={'profile':PROFILE['name'],'node':PROFILE['node_version'],'mobile':version,
           'upstream':next(l.strip() for l in (ROOT/'upstream-base.txt').read_text().splitlines() if l.strip() and not l.startswith('#')),
           'source_tree':source_tree,'recipe':os.environ.get('GITHUB_SHA',run('git','-C',str(ROOT),'rev-parse','HEAD').strip()),
           'run':os.environ.get('GITHUB_RUN_ID'),'repository':os.environ.get('GITHUB_REPOSITORY','Celestials316/nodejs-mobile-app-lite'),
-          'platform':'android','abis':ABIS,'android_api':24,'ndk':'r27d','quic':True,
-          'icu_profile':'danmu-lite','files':{}}
+          'platform':'android','abis':list(ABIS),'android_api':PROFILE['android_api'],'ndk':PROFILE['ndk'],
+          'quic':PROFILE['quic'],'quic_default_enabled':PROFILE['quic_default_enabled'],
+          'icu_profile':Path(PROFILE['icu_profile']).stem,'files':{}}
     for abi in ABIS:
         p=source/'bin'/abi/'libnode.so';info['files'][f'bin/{abi}/libnode.so']={'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
     (source/'BUILD-INFO.json').write_text(json.dumps(info,indent=2)+'\n')

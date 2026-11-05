@@ -8,7 +8,7 @@ CONTROL=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(CONTROL)
 class PrivateRelease(unittest.TestCase):
     def env(self,**extra):
         return patch.dict(os.environ,{'GITHUB_REPOSITORY':'Celestials316/nodejs-mobile-app-lite',
-          'GITHUB_RUN_ID':'42','GITHUB_REF':'refs/heads/recipe',
+          'GITHUB_RUN_ID':'42','GITHUB_REF':'refs/heads/recipe-v27',
           'GITHUB_EVENT_NAME':'workflow_dispatch','BUILD_OPERATION':'build-and-release','RELEASE_TAG':'',**extra})
     def test_identity_is_allowed_public_and_other_owners_rejected(self):
         # Public visibility is allowed since 2026-10-14 (free standard
@@ -29,10 +29,11 @@ class PrivateRelease(unittest.TestCase):
             self.assertFalse(CONTROL.exists('tag'))
     def test_manual_release_branch_and_tag_reservation(self):
         with self.env(),patch.object(CONTROL,'private'),patch.object(CONTROL,'exists',return_value=False),patch.object(CONTROL,'output') as output:
-            CONTROL.preflight();self.assertEqual(output.call_args[0][0]['tag'],'app-lite-v24.22.0-1-build.42')
-        for options in [{'GITHUB_EVENT_NAME':'push'},{'GITHUB_REF':'refs/heads/dev'},
-                        {'RELEASE_TAG':'v24.22.0-0'},{'RELEASE_TAG':'app-lite-v26.11.0-0'},
-                        {'RELEASE_TAG':'app-lite-v24.22.0-1; bad'}]:
+            CONTROL.preflight();self.assertEqual(output.call_args[0][0]['tag'],f'app-lite-v{CONTROL.version()}-build.42')
+        for options in [{'GITHUB_EVENT_NAME':'push'},{'GITHUB_REF':'refs/heads/recipe'},
+                        {'GITHUB_REF':'refs/heads/dev'},{'RELEASE_TAG':'v27.0.0-0'},
+                        {'RELEASE_TAG':'app-lite-v26.11.0-0'},
+                        {'RELEASE_TAG':'app-lite-v27.0.0-0; bad'}]:
             with self.env(**options),patch.object(CONTROL,'private'),patch.object(CONTROL,'exists',return_value=False),self.assertRaises(ValueError):CONTROL.preflight()
         with self.env(),patch.object(CONTROL,'private'),patch.object(CONTROL,'exists',return_value=True),self.assertRaises(ValueError):CONTROL.preflight()
     def test_source_package_rejects_missing_abi_and_unknown_files(self):

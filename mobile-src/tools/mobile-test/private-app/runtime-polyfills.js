@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Node 24 compatibility shims for the bundled core dependencies.
+ * Node 27 compatibility shims for the bundled core dependencies.
  * Install non-enumerable shims only when the embedded runtime has no native implementation.
  *
  * 2026-08 (Node 24.19.0): Array.prototype.{toReversed,toSorted} and all

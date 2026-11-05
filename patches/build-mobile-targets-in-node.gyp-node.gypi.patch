@@ -16,34 +16,28 @@ Co-authored-by: Jaime Bernardo <jaime@janeasystems.com>
 Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 ---
- node.gyp  | 19 +++++++++++++++----
+ node.gyp  | 20 +++++++++++++++++---
  node.gypi | 22 ++++++++++++++++++----
- 2 files changed, 33 insertions(+), 8 deletions(-)
+ 2 files changed, 35 insertions(+), 7 deletions(-)
 
 diff --git a/node.gyp b/node.gyp
-index 62c748b130..123826f4c3 100644
+index 1141736d3c..00e812c134 100644
 --- a/node.gyp
 +++ b/node.gyp
-@@ -68,6 +68,8 @@
-       'deps/acorn/acorn/dist/acorn.js',
-       'deps/acorn/acorn-walk/dist/walk.js',
-       'deps/minimatch/index.js',
-+      # This private Android build retains native V8 WebAssembly; omit the
-+      # iOS-only polywasm source from js2c and the shared library.
-       '<@(node_builtin_shareable_builtins)',
-     ],
-     'node_sources': [
-@@ -925,7 +927,8 @@
-             '<@(node_quic_sources)',
+@@ -945,6 +945,12 @@
+             'HAVE_DTLS=1',
            ],
          }],
--        [ 'OS in "linux freebsd mac solaris openharmony" and '
 +        # nodejs-mobile patch to mention iOS
 +        [ 'OS in "linux freebsd mac ios solaris openharmony" and '
-           'target_arch=="x64" and '
-           'node_target_type=="executable"', {
-           'defines': [ 'NODE_ENABLE_LARGE_CODE_PAGES=1' ],
-@@ -1056,6 +1059,12 @@
++          'target_arch=="x64" and '
++          'node_target_type=="executable"', {
++          'defines': [ 'NODE_ENABLE_LARGE_CODE_PAGES=1' ],
++        }],
+         [ 'use_openssl_def==1', {
+           # TODO(bnoordhuis) Make all platforms export the same list of symbols.
+           # Teach mkssldef.py to generate linker maps that UNIX linkers understand.
+@@ -1071,6 +1077,12 @@
        ],
  
        'conditions': [
@@ -56,7 +50,7 @@ index 62c748b130..123826f4c3 100644
          [ 'node_builtin_modules_path!=""', {
            # When loading builtins from disk, JS source files do not need to
            # trigger rebuilds since the binary reads them at runtime.
-@@ -1422,8 +1431,9 @@
+@@ -1440,8 +1452,9 @@
          ['OS=="solaris"', {
            'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
          }],
@@ -68,7 +62,7 @@ index 62c748b130..123826f4c3 100644
            'type': 'none',
          }],
          [ 'node_shared=="true"', {
-@@ -1581,7 +1591,8 @@
+@@ -1602,7 +1615,8 @@
          [ 'node_shared_libuv=="false"', {
            'dependencies': [ 'deps/uv/uv.gyp:libuv#host' ],
          }],
@@ -79,10 +73,10 @@ index 62c748b130..123826f4c3 100644
          }],
          [ 'debug_node=="true"', {
 diff --git a/node.gypi b/node.gypi
-index 6587270c9e..ffce5184cd 100644
+index 32e7dca2fd..092370d7b6 100644
 --- a/node.gypi
 +++ b/node.gypi
-@@ -264,6 +264,11 @@
+@@ -285,6 +285,11 @@
          'NODE_PLATFORM="darwin"',
        ],
      }],
@@ -94,7 +88,7 @@ index 6587270c9e..ffce5184cd 100644
      [ 'OS=="freebsd"', {
        'libraries': [
          '-lutil',
-@@ -342,7 +347,7 @@
+@@ -363,7 +368,7 @@
          ],
        },
      }],
@@ -103,8 +97,8 @@ index 6587270c9e..ffce5184cd 100644
        'cflags!': [ '-O3' ],
        'ldflags': [ '--coverage',
                     '-g',
-@@ -390,11 +395,15 @@
-           'defines': [ 'OPENSSL_API_COMPAT=0x10100000L', ],
+@@ -410,11 +415,15 @@
+         [ 'node_shared_openssl=="false"', {
            'dependencies': [
              './deps/openssl/openssl.gyp:openssl',
 -
@@ -122,9 +116,9 @@ index 6587270c9e..ffce5184cd 100644
              # -force_load or --whole-archive are not applicable for
              # the static library
              [ 'force_load=="true"', {
-@@ -461,5 +470,10 @@
-     }, {
-       'defines': [ 'HAVE_QUIC=0' ]
+@@ -488,5 +497,10 @@
+         }],
+       ],
      }],
 +    [ 'OS=="android" or OS=="ios"', {
 +      'defines': [

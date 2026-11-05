@@ -1,8 +1,10 @@
 {
   "name": "danmu-android-lite-h3",
-  "node_line": 24,
+  "node_line": 27,
+  "node_version": "27.0.0",
+  "recipe_branch": "recipe-v27",
   "android_api": 24,
-  "ndk": "r27d",
+  "ndk": "r29",
   "abis": [
     "arm64-v8a",
     "armeabi-v7a",
@@ -15,5 +17,5 @@
   "native_wasm": true,
   "pointer_compression_64bit": true,
   "release_tag_prefix": "app-lite-v",
-  "source_base": "a5d0eb95dd03b90986ad1a7c0cd3f2de1a0f383c"
+  "source_base": "fe34c8eae5514797d6dc21a4bdec39c9913d9322"
 }

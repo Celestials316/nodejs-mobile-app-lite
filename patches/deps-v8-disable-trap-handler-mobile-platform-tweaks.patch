@@ -21,12 +21,12 @@ Co-authored-by: Jaime Bernardo <jaime@janeasystems.com>
 Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 ---
- android-patches/trap-handler.h.patch          | 47 ------------
+ android-patches/trap-handler.h.patch          | 47 -------------
  deps/v8/src/base/platform/platform-posix.cc   |  6 ++
- .../heap/base/asm/x64/push_registers_asm.cc   | 74 ++++++++++++++++---
- deps/v8/src/trap-handler/handler-outside.cc   |  2 +
- deps/v8/src/trap-handler/trap-handler.h       | 49 +++---------
- 5 files changed, 82 insertions(+), 96 deletions(-)
+ .../heap/base/asm/x64/push_registers_asm.cc   | 69 +++++++++++++++++--
+ deps/v8/src/trap-handler/handler-outside.cc   |  3 +-
+ deps/v8/src/trap-handler/trap-handler.h       | 46 ++++---------
+ 5 files changed, 83 insertions(+), 88 deletions(-)
  delete mode 100644 android-patches/trap-handler.h.patch
 
 diff --git a/android-patches/trap-handler.h.patch b/android-patches/trap-handler.h.patch
@@ -83,10 +83,10 @@ index 6974259ffb..0000000000
 --#endif
 -+#define V8_TRAP_HANDLER_SUPPORTED false
 diff --git a/deps/v8/src/base/platform/platform-posix.cc b/deps/v8/src/base/platform/platform-posix.cc
-index 5c93b3aaaf..2858a8c7dd 100644
+index df122799fd..a9b584890a 100644
 --- a/deps/v8/src/base/platform/platform-posix.cc
 +++ b/deps/v8/src/base/platform/platform-posix.cc
-@@ -334,6 +334,12 @@ void* OS::GetRandomMmapAddr() {
+@@ -378,6 +378,12 @@ void* OS::GetRandomMmapAddr() {
      MutexGuard guard(rng_mutex.Pointer());
      GetPlatformRandomNumberGenerator()->NextBytes(&raw_addr, sizeof(raw_addr));
    }
@@ -100,7 +100,7 @@ index 5c93b3aaaf..2858a8c7dd 100644
  #if defined(V8_TARGET_OS_MACOS)
    DCHECK_EQ(1 << 14, AllocatePageSize());
 diff --git a/deps/v8/src/heap/base/asm/x64/push_registers_asm.cc b/deps/v8/src/heap/base/asm/x64/push_registers_asm.cc
-index 554caddfa7..71e6949e3c 100644
+index d1d79dcfd5..6a464d49b0 100644
 --- a/deps/v8/src/heap/base/asm/x64/push_registers_asm.cc
 +++ b/deps/v8/src/heap/base/asm/x64/push_registers_asm.cc
 @@ -14,16 +14,67 @@
@@ -183,34 +183,32 @@ index 554caddfa7..71e6949e3c 100644
 +// nodejs-mobile patch: actually, we SHOULD depend on V8_TARGET_* defines.
 +#ifndef V8_TARGET_ARCH_ARM
      // rbp is callee-saved. Maintain proper frame pointer for debugging.
+     "  .cfi_startproc                                   \n"
      "  push %rbp                                        \n"
-     "  mov %rsp, %rbp                                   \n"
-@@ -57,10 +110,7 @@ asm(
-     "  add $48, %rsp                                    \n"
-     // Restore rbp as it was used as frame pointer.
-     "  pop %rbp                                         \n"
--    "  ret                                              \n"
--#if !defined(__APPLE__)
--    ".Lfunc_end0:                                       \n"
--    ".size PushAllRegistersAndIterateStack, "
--    ".Lfunc_end0-PushAllRegistersAndIterateStack        \n"
--#endif  // !defined(__APPLE__)
--    );
+@@ -80,4 +133,8 @@ asm(
+     ".size PushAllRegistersAndIterateStack, "
+     ".Lfunc_end0-PushAllRegistersAndIterateStack        \n"
+ #endif  // !defined(__APPLE__)
+-    ".cfi_endproc                                      \n");
++    ".cfi_endproc                                      \n"
 +#endif  // !V8_TARGET_ARCH_ARM
-+    "  ret                                              \n");
++    );
 +
 +#endif  // !_WIN64
 diff --git a/deps/v8/src/trap-handler/handler-outside.cc b/deps/v8/src/trap-handler/handler-outside.cc
-index 6e2b40d9f5..ede435b302 100644
+index 6d74c0f6be..f0c207d629 100644
 --- a/deps/v8/src/trap-handler/handler-outside.cc
 +++ b/deps/v8/src/trap-handler/handler-outside.cc
-@@ -307,11 +307,13 @@ bool EnableTrapHandler(bool use_v8_handler) {
+@@ -374,7 +374,7 @@ bool EnableTrapHandler(bool use_v8_handler) {
    if (!V8_TRAP_HANDLER_SUPPORTED) {
      return false;
    }
+-
 +#if V8_TRAP_HANDLER_SUPPORTED
-   if (use_v8_handler) {
-     g_is_trap_handler_enabled = RegisterDefaultTrapHandler();
+   // "Warm-up" the TrapHandlerGuard mechanism to ensure that if any
+   // initialization is required for its thread-local storage, it is done now
+   // and not inside the signal handler. We're being extra cautious here, it's
+@@ -386,6 +386,7 @@ bool EnableTrapHandler(bool use_v8_handler) {
      return g_is_trap_handler_enabled;
    }
    g_is_trap_handler_enabled = true;
@@ -219,10 +217,10 @@ index 6e2b40d9f5..ede435b302 100644
  }
  
 diff --git a/deps/v8/src/trap-handler/trap-handler.h b/deps/v8/src/trap-handler/trap-handler.h
-index bd6f19593d..a2133e1cbc 100644
+index fa4fc80c9c..157272fcc3 100644
 --- a/deps/v8/src/trap-handler/trap-handler.h
 +++ b/deps/v8/src/trap-handler/trap-handler.h
-@@ -15,45 +15,20 @@
+@@ -15,42 +15,20 @@
  
  namespace v8::internal::trap_handler {
  
@@ -231,10 +229,14 @@ index bd6f19593d..a2133e1cbc 100644
 -    ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN || \
 -     V8_OS_FREEBSD)
 -#define V8_TRAP_HANDLER_SUPPORTED true
--// Arm64 (non-simulator) on Linux, Windows, MacOS.
+-// Arm64 native on Linux, Windows, MacOS.
 -#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_ARM64 && \
 -    ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_WIN || V8_OS_DARWIN)
 -#define V8_TRAP_HANDLER_SUPPORTED true
+-// For Linux and Mac, enable the simulator when it's been requested.
+-#if USE_SIMULATOR && ((V8_OS_LINUX && !V8_OS_ANDROID) || V8_OS_DARWIN)
+-#define V8_TRAP_HANDLER_VIA_SIMULATOR
+-#endif
 -// Arm64 simulator on x64 on Linux, Mac, or Windows.
 +// nodejs-mobile patch.
  //
@@ -245,13 +247,6 @@ index bd6f19593d..a2133e1cbc 100644
 -#elif V8_TARGET_ARCH_ARM64 && V8_HOST_ARCH_X64 && \
 -    (V8_OS_LINUX || V8_OS_DARWIN || V8_OS_WIN) && \
 -    (!defined(_MSC_VER) || defined(__clang__))
--#define V8_TRAP_HANDLER_VIA_SIMULATOR
--#define V8_TRAP_HANDLER_SUPPORTED true
--// Loong64 (non-simulator) on Linux.
--#elif V8_TARGET_ARCH_LOONG64 && V8_HOST_ARCH_LOONG64 && V8_OS_LINUX
--#define V8_TRAP_HANDLER_SUPPORTED true
--// Loong64 simulator on x64 on Linux
--#elif V8_TARGET_ARCH_LOONG64 && V8_HOST_ARCH_X64 && V8_OS_LINUX
 -#define V8_TRAP_HANDLER_VIA_SIMULATOR
 -#define V8_TRAP_HANDLER_SUPPORTED true
 -// RISCV64 (non-simulator) on Linux.

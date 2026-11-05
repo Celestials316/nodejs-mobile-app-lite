@@ -15,8 +15,13 @@ const { AsyncLocalStorage } = require('node:async_hooks');
 
 const deadline = setTimeout(() => { throw new Error('App runtime smoke timed out'); }, 60000);
 async function main() {
-  assert.equal(process.versions.node, '24.22.0');
+  assert.match(process.versions.node, /^27\.0\.0(?:-alpha\.|$)/);
+  assert.ok(process.versions.mobile.startsWith(process.versions.node + '-'),
+    'mobile version must retain upstream version metadata');
+  assert.match(process.versions.openssl, /^4\.1\.0(?:-|$)/, 'OpenSSL 4.1 is expected');
+  assert.equal(globalThis.Temporal, undefined, 'Temporal is intentionally trimmed');
   assert.equal(process.config.variables.node_use_quic, true, 'QUIC must be compiled');
+  assert.equal(process.config.variables.node_use_ffi, false, 'FFI is intentionally trimmed');
   assert.ok(process.versions.ngtcp2 && process.versions.nghttp3);
   assert.equal(typeof require('node:quic').connect, 'function', 'QUIC enabled by default');
   assert.equal(process.config.variables.v8_enable_webassembly, 1);
