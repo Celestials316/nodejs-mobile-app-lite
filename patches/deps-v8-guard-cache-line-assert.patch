@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Celestials316 <240407887+Celestials316@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 00:40:02 +0800
+Subject: [PATCH] deps,v8: skip the cache-line layout assert on 32-bit hosts
+
+The Node 27 alpha compiles its 32-bit host tools against a standard
+library that does not provide the C++17 cache-line interference constant.
+Guard V8's compile-time layout sanity check with the feature macro. The
+check has no effect on object layout or runtime behavior, and it remains
+enabled wherever the constant exists.
+---
+ deps/v8/src/heap/mutable-page.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/deps/v8/src/heap/mutable-page.cc b/deps/v8/src/heap/mutable-page.cc
+index a63309718d..8c7eb3693a 100644
+--- a/deps/v8/src/heap/mutable-page.cc
++++ b/deps/v8/src/heap/mutable-page.cc
+@@ -49,9 +49,11 @@ MutablePage::MutablePage(Heap* heap, BaseSpace* space, size_t chunk_size,
+   // This assert is merely necessary but not sufficient to guarantee that the
+   // fields sit on the same cacheline as the metadata object itself is
+   // dynamically allocated without alignment restrictions.
++#if defined(__cpp_lib_hardware_interference_size)
+   static_assert(
+       kOffsetOfFirstFastField / std::hardware_destructive_interference_size ==
+       kOffsetOfLastFastField / std::hardware_destructive_interference_size);
++#endif
+ }
+ 
+ // static

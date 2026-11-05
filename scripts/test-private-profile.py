@@ -53,6 +53,8 @@ class PrivateProfile(unittest.TestCase):
         source=(SOURCE/'deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc').read_text()
         self.assertIn('SimdShuffle::ShuffleArray<kSimd128Size> shuffle_bytes;',source)
         self.assertNotIn('SimdShuffle::ShuffleArray shuffle_bytes;',source)
+        page=(SOURCE/'deps/v8/src/heap/mutable-page.cc').read_text()
+        self.assertIn('#if defined(__cpp_lib_hardware_interference_size)',page)
     def test_workflow_only_private_android_lite_and_gated_publication(self):
         import yaml
         names=sorted(p.name for p in (ROOT/'.github/workflows').glob('*.yml'))
