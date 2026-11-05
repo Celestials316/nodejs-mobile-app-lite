@@ -30,6 +30,12 @@ the App runtime. The test harness patch is retained because the emulator App
 uses it. The QUIC default remains behind `OPENSSL_NO_QUIC`; FFI and Temporal
 are disabled because danmu_api does not use them.
 
+Two build-only adaptations cover the alpha's host tools. The arm target
+needs the host toolset linked with `-latomic`, and V8 15.6 default-constructs
+an alias template (`SimdShuffle::ShuffleArray`) in a form rejected by the
+runner's host compiler; the patch spells out the existing 128-bit size. Neither
+changes libnode behavior or data layout.
+
 The runtime gate checks that `process.versions.mobile` retains the upstream
 prerelease metadata before the mobile rebuild suffix. OpenSSL 4.1 and QUIC/
 HTTP/3 behavior are validated on the API24 emulator. A successful SDK build

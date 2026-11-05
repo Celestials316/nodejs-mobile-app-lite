@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Celestials316 <240407887+Celestials316@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 23:06:56 +0800
+Subject: [PATCH] deps,v8: spell out the 128-bit ShuffleArray type
+
+Node 27's alpha V8 declares ShuffleArray as an alias template, then
+default-constructs it without template arguments. The Android host
+toolchain used for node_js2c rejects alias-template CTAD, so name the
+existing default width explicitly. This is a build fix with no runtime
+or data-layout change.
+---
+ deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc b/deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc
+index 5938a6dd34..0597712d8c 100644
+--- a/deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc
++++ b/deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc
+@@ -853,7 +853,7 @@ void WasmShuffleAnalyzer::ProcessShuffleOfLoads(const Simd128ShuffleOp& shuffle,
+ 
+   if (GetDemandedBytes(&shuffle).IsAll()) {
+     // Full width shuffles.
+-    SimdShuffle::ShuffleArray shuffle_bytes;
++    SimdShuffle::ShuffleArray<kSimd128Size> shuffle_bytes;
+     std::copy_n(shuffle.shuffle.begin(), kSimd128Size, shuffle_bytes.begin());
+     auto canonical = SimdShuffle::TryMatchCanonical(shuffle_bytes);
+     switch (canonical) {

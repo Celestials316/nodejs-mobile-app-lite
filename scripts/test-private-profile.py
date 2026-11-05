@@ -49,6 +49,10 @@ class PrivateProfile(unittest.TestCase):
         self.assertNotIn("'deps/polywasm/polywasm.js'",(SOURCE/'node.gyp').read_text())
         self.assertNotIn("require('internal/deps/polywasm/polywasm')",(SOURCE/'lib/internal/process/pre_execution.js').read_text())
         self.assertIn('en',json.loads((SOURCE/'tools/icu/danmu-lite.json').read_text())['variables']['locales']['only'])
+    def test_node27_alpha_v8_host_build_fix(self):
+        source=(SOURCE/'deps/v8/src/compiler/turboshaft/wasm-shuffle-reducer.cc').read_text()
+        self.assertIn('SimdShuffle::ShuffleArray<kSimd128Size> shuffle_bytes;',source)
+        self.assertNotIn('SimdShuffle::ShuffleArray shuffle_bytes;',source)
     def test_workflow_only_private_android_lite_and_gated_publication(self):
         import yaml
         names=sorted(p.name for p in (ROOT/'.github/workflows').glob('*.yml'))
