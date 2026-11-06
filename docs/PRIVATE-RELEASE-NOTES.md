@@ -17,6 +17,8 @@ snapshot, not a stable production runtime.
 - Omit npm/Corepack, the iOS polywasm fallback, Amaro, Inspector,
   SQLite/Web Storage, SEA, V8 object-print helpers, FFI and V8 Temporal.
   ECH is not included.
+- Build with Clang 20 host tools from LLVM's official apt repository (Node 27
+  requires Clang 19.1+) and the pinned NDK r29 cross compiler.
 - Use API23-compatible APS2 relocation packing and ABI-preserving SDK
   stripping; retain the API24 floor, 16 KB segment alignment, RELRO/NOW and
   GNU build IDs.

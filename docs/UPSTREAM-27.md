@@ -30,13 +30,15 @@ the App runtime. The test harness patch is retained because the emulator App
 uses it. The QUIC default remains behind `OPENSSL_NO_QUIC`; FFI and Temporal
 are disabled because danmu_api does not use them.
 
-Three build-only adaptations cover the alpha's host tools. The arm target
-needs the host toolset linked with `-latomic`; V8 15.6 default-constructs an
-alias template (`SimdShuffle::ShuffleArray`) in a form rejected by the
-runner's host compiler, so the patch spells out the existing 128-bit size; and
-the 32-bit host standard library lacks the C++17 cache-line constant used by
-one V8 layout assertion, so that non-functional assertion is feature-gated.
-None of these changes alter libnode behavior or data layout.
+Node 27's V8 needs a Clang 19.1+ host toolchain for C++20 features that the
+runner's default Clang 18 does not implement. CI installs Clang 20 and the
+configure wrapper now honors explicit `CC_host`/`CXX_host` values. The arm
+target also needs the host toolset linked with `-latomic`; V8 15.6
+default-constructs an alias template (`SimdShuffle::ShuffleArray`) in a form
+rejected by older compilers, so the patch spells out the existing 128-bit
+size; and the 32-bit host standard library lacks the C++17 cache-line constant
+used by one V8 layout assertion, so that non-functional assertion is
+feature-gated. None of these changes alter libnode behavior or data layout.
 
 The runtime gate checks that `process.versions.mobile` retains the upstream
 prerelease metadata before the mobile rebuild suffix. OpenSSL 4.1 and QUIC/

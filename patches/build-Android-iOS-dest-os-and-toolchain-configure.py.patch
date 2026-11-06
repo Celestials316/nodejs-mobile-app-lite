@@ -23,12 +23,12 @@ Co-authored-by: Andre Staltz <andre@staltz.com>
 Co-authored-by: Julia Samól <j.samol@papers.ch>
 Co-authored-by: Vincent Breitmoser <look@my.amazin.horse>
 ---
- android_configure.py | 53 +++++++++++++++++++++++++++++++-------------
- configure.py         |  8 +++++++
- 2 files changed, 46 insertions(+), 15 deletions(-)
+ android_configure.py | 58 ++++++++++++++++++++++++++++++++------------
+ configure.py         |  8 ++++++
+ 2 files changed, 51 insertions(+), 15 deletions(-)
 
 diff --git a/android_configure.py b/android_configure.py
-index 5cea0393f4..d9c3ca21b8 100644
+index 5cea0393f4..55da069fd7 100644
 --- a/android_configure.py
 +++ b/android_configure.py
 @@ -1,25 +1,14 @@
@@ -68,13 +68,18 @@ index 5cea0393f4..d9c3ca21b8 100644
      toolchain_path = android_ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64"
  
  elif platform.system() == "Linux":
-@@ -65,13 +54,47 @@ elif platform.system() == "Linux":
+@@ -65,13 +54,52 @@ elif platform.system() == "Linux":
  os.environ['PATH'] += os.pathsep + toolchain_path + "/bin"
  os.environ['CC'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" +  "clang"
  os.environ['CXX'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" + "clang++"
-+# nodejs-mobile patch: add host CC and CXX
-+os.environ['CC_host'] = os.popen('command -v clang').read().strip()
-+os.environ['CXX_host'] = os.popen('command -v clang++').read().strip()
++# nodejs-mobile patch: add host CC and CXX, honoring an explicit toolchain
++host_cc = os.environ.get('CC_host') or shutil.which('clang')
++host_cxx = os.environ.get('CXX_host') or shutil.which('clang++')
++if not host_cc or not host_cxx:
++    print("\033[91mError: \033[0m" + "Host clang/clang++ not found")
++    sys.exit(1)
++os.environ['CC_host'] = host_cc
++os.environ['CXX_host'] = host_cxx
 +
 +# nodejs-mobile patch: route every compile through sccache, but only when the
 +# caller opts in (CI sets NODEJS_MOBILE_SCCACHE=1 next to the

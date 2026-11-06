@@ -16,12 +16,13 @@ class PrivateProfile(unittest.TestCase):
         capture=folder/'capture.json'
         program=folder/'configure'
         program.write_text(f'#!{sys.executable}\nimport json,sys,os\n'
-            f'open({str(capture)!r},"w").write(json.dumps({{"flags":sys.argv[1:],"gyp":os.environ["GYP_DEFINES"]}}))\nsys.exit({code})\n')
+            f'open({str(capture)!r},"w").write(json.dumps({{"flags":sys.argv[1:],"gyp":os.environ["GYP_DEFINES"],"CC_host":os.environ["CC_host"],"CXX_host":os.environ["CXX_host"]}}))\nsys.exit({code})\n')
         program.chmod(0o755)
         command=[sys.executable,'-c',
             "import platform,runpy,sys;platform.system=lambda:'Linux';sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')",
             str(SOURCE/'android_configure.py'),str(ndk),str(PROFILE['android_api']),arch]
-        env=dict(os.environ,NODEJS_MOBILE_FLAVOR=flavor);env.pop('NODEJS_MOBILE_SCCACHE',None)
+        env=dict(os.environ,NODEJS_MOBILE_FLAVOR=flavor,CC_host='host-clang-20',CXX_host='host-clang++-20')
+        env.pop('NODEJS_MOBILE_SCCACHE',None)
         result=subprocess.run(command,cwd=folder,env=env,capture_output=True,text=True)
         return result,json.loads(capture.read_text()) if capture.exists() else None
     def test_all_app_abis_keep_network_icu_and_engine(self):
@@ -34,6 +35,8 @@ class PrivateProfile(unittest.TestCase):
                 self.assertNotIn('--without-corepack', flags)
                 self.assertTrue({'--experimental-quic','--with-intl=full-icu','--shared','--cross-compiling'} <= flags)
                 self.assertIn('node_mobile_icu_profile=danmu-lite.json',config['gyp'])
+                self.assertEqual(config['CC_host'],'host-clang-20')
+                self.assertEqual(config['CXX_host'],'host-clang++-20')
                 self.assertEqual('--experimental-enable-pointer-compression' in flags,arch!='arm')
                 self.assertFalse(flags & {'--without-ssl','--without-node-options','--v8-lite-mode','--without-v8-platform','--without-siphash'})
     def test_full_build_and_configure_failures_are_rejected(self):

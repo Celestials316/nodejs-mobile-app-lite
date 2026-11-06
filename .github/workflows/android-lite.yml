@@ -29,6 +29,7 @@ env:
   NODEJS_MOBILE_FLAVOR: lite
   ANDROID_NDK_VERSION: r29
   ANDROID_API: '24'
+  HOST_CLANG: clang-20
 jobs:
   prepare:
     runs-on: ubuntu-24.04
@@ -87,7 +88,8 @@ jobs:
       # libnode.so: the immutable upstream base, the patch series, the
       # mobile-src files that enter the build (src/, deps/, the android
       # build scripts), the private profile, the build script, the
-      # architecture, the NDK and the App API level. Device-test tooling and
+      # architecture, the NDK, the App API level and the host Clang version.
+      # Device-test tooling and
       # tests (mobile-src/test, mobile-src/tools/mobile-test) are
       # deliberately NOT part of the key: they ship in the test APK, never
       # in libnode.so, and keeping them out means a fix to the on-device
@@ -101,11 +103,19 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: payload
-          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
+          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}-${{ env.HOST_CLANG }}
       - if: steps.libnode-cache.outputs.cache-hit != 'true'
+        name: Install the Clang 20 host toolchain
         run: |
+          key="$RUNNER_TEMP/llvm-snapshot.asc"
+          curl --fail --location --silent --show-error --retry 3 \
+            https://apt.llvm.org/llvm-snapshot.gpg.key -o "$key"
+          echo "8b2a587ffd672c4687e7581dad4b2f6c1bb2ad6b480cd9771ba2ff48e0b8c75d  $key" | sha256sum --check
+          sudo install -D -m 0644 "$key" /etc/apt/keyrings/llvm-snapshot.asc
+          echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.asc] https://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" |
+            sudo tee /etc/apt/sources.list.d/llvm-20.list >/dev/null
           sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
+          sudo apt-get install -y clang-20 gcc-multilib g++-multilib
           python3 -m pip install setuptools
       - if: steps.libnode-cache.outputs.cache-hit != 'true'
         uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779
@@ -118,6 +128,8 @@ jobs:
         env:
           NDK: ${{ steps.ndk.outputs.ndk-path }}
           ARCH: ${{ matrix.arch }}
+          CC_host: clang-20
+          CXX_host: clang++-20
         run: scripts/private-build.sh "$NDK" "$ARCH"
       # Explicit save instead of actions/cache's post step: this runs only
       # after the Build step above succeeded, so a failed or partial payload
@@ -127,7 +139,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: payload
-          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}
+          key: private-libnode-${{ hashFiles('upstream-base.txt', 'patches/*.patch', 'private-profile.json', 'scripts/private-build.sh', 'mobile-src/src/**', 'mobile-src/deps/**', 'mobile-src/tools/*.sh', 'mobile-src/tools/*.py') }}-${{ matrix.arch }}-${{ env.ANDROID_NDK_VERSION }}-${{ env.ANDROID_API }}-${{ env.HOST_CLANG }}
       - uses: actions/upload-artifact@v7
         with:
           name: private-android-lite-${{ matrix.arch }}
