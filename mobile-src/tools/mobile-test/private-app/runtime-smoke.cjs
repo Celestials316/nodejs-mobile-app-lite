@@ -5,6 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const https = require('node:https');
+const tls = require('node:tls');
 const http2 = require('node:http2');
 const crypto = require('node:crypto');
 const zlib = require('node:zlib');
@@ -26,6 +27,12 @@ async function main() {
   assert.equal(typeof require('node:quic').connect, 'function', 'QUIC enabled by default');
   assert.equal(process.config.variables.v8_enable_webassembly, 1);
   assert.equal(process.config.variables.node_use_openssl, true);
+  assert.equal(tls.ECH_SUPPORTED, true, 'OpenSSL 4.1 ECH must be exposed');
+  assert.equal(typeof tls.TLSSocket.prototype.getECHStatus, 'function');
+  assert.throws(() => tls.connect({echConfigList: 'invalid'}),
+                {code: 'ERR_INVALID_ARG_TYPE'});
+  assert.throws(() => tls.connect({echConfigList: Buffer.alloc(0)}),
+                {code: 'ERR_INVALID_ARG_VALUE'});
   assert.equal(process.config.variables.node_use_sqlite, false);
   assert.equal(process.config.variables.node_use_amaro, false);
   assert.equal(process.config.variables.v8_enable_inspector, 0);
@@ -92,6 +99,40 @@ async function main() {
       }).on('error',reject);
     });
     assert.equal(data,'tls-ok');
+    // ECH configuration is mandatory. A normal TLS server cannot authenticate
+    // it, so the client must fail without emitting secureConnect or sending
+    // application data to the plaintext-SNI server.
+    const { publicKey } = crypto.generateKeyPairSync('x25519');
+    const echKey = publicKey.export({type:'spki',format:'der'}).subarray(-32);
+    const echName = Buffer.from('localhost');
+    const echContent = Buffer.concat([
+      Buffer.from([1, 0, 32, 0, 32]), echKey,
+      Buffer.from([0, 4, 0, 1, 0, 1, 0, echName.length]), echName,
+      Buffer.from([0, 0]),
+    ]);
+    const echConfigList = Buffer.concat([
+      Buffer.from([0, echContent.length + 4, 0xfe, 0x0d, 0, echContent.length]),
+      echContent,
+    ]);
+    assert.throws(() => tls.connect({servername:'localhost',
+      rejectUnauthorized:false, echConfigList}), {code:'ERR_INVALID_ARG_VALUE'});
+    let leaked = false;
+    const echServer = tls.createServer({key,cert}, socket => {
+      socket.on('data',() => { leaked = true; });
+      socket.on('error',() => {});
+    });
+    echServer.on('tlsClientError',() => {});
+    const echPort = await serve(echServer);
+    const echError = await new Promise((resolve,reject) => {
+      const socket = tls.connect({host:'127.0.0.1',port:echPort,
+        servername:'localhost',ca:cert,echConfigList});
+      socket.setTimeout(5000,() => socket.destroy(new Error('ECH test timed out')));
+      socket.once('error',resolve);
+      socket.once('secureConnect',() => reject(new Error('ECH rejection emitted secureConnect')));
+      socket.write('must stay encrypted to the intended ECH server');
+    });
+    assert.ok(echError instanceof Error, 'ECH rejection must surface an error');
+    assert.equal(leaked,false,'ECH rejection leaked application data');
     const h2 = http2.createServer();
     h2.on('stream',stream => {stream.respond({':status':200});stream.end('h2-ok');});
     const h2Port = await serve(h2);

@@ -28,8 +28,8 @@ release; integration decisions must treat it as alpha.
 - Omit FFI and V8 Temporal with `--without-ffi` and
   `--v8-disable-temporal-support`; danmu_api and its locked App dependencies
   do not use them.
-- Keep HTTP/HTTPS/TLS, HTTP/2, HTTP/3, fetch/node-fetch, DNS, crypto,
-  zlib/Brotli/zstd, workers/child_process, AsyncLocalStorage/async context,
+- Keep HTTP/HTTPS/TLS, HTTP/2, HTTP/3 with mandatory ECH, fetch/node-fetch,
+  DNS, crypto, zlib/Brotli/zstd, workers/child_process, AsyncLocalStorage/async context,
   filesystem/path/url, VM, module loading and Node-API. These are the
   capabilities exercised by danmu_api or its bundled dependencies.
 - Pack dynamic relocations using Android's APS2 format, which works from
@@ -41,8 +41,11 @@ release; integration decisions must treat it as alpha.
   allow-list: JNI/node::Start and native-addon compatibility matter.
 
 QUIC uses the upstream ngtcp2/nghttp3 implementation. `node:quic` is enabled
-by default in this profile, and `--no-experimental-quic` can disable it. H3
-does not add ECH.
+by default in this profile, and `--no-experimental-quic` can disable it. Node 27
+upstream does not expose OpenSSL ECH to JavaScript, so this port applies the
+reviewed Node 26 client patch: `tls.ECH_SUPPORTED`, TLS `echConfigList`/
+`echAccepted`, QUIC `echConfigList`/`opened.echAccepted`, mandatory peer
+verification and no plaintext-SNI fallback.
 
 ## Compatibility gates
 
@@ -58,6 +61,8 @@ runs:
 - Locked App dependencies: pure UniDB, adapters, OpenCC, pako, Brotli,
   node-fetch and HTTPS proxy agent.
 - Real HTTP/3 GET and large POST round trips with certificate validation.
+- ECH support and mandatory behavior: TLS rejection cannot emit `secureConnect`
+  or leak application data, and a QUIC ECH rejection cannot open a session.
 - A real compiled Node-API addon.
 
 The upstream Node 24 curated suite is intentionally not run on this alpha

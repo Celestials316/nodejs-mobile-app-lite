@@ -13,12 +13,15 @@ experimental alpha, not a stable Node Current release. The verified tree is
 recorded in `expected-tree.txt`.
 
 The lite profile keeps native QUIC/HTTP/3 (enabled by default), the reviewed
-danmu ICU data, JIT/native WebAssembly, HTTP/HTTPS/TLS, HTTP/2, DNS/crypto,
-zlib/Brotli/zstd, workers/child processes, async context, filesystem/module
-loading, VM, AsyncLocalStorage and Node-API exports. It trims npm/Corepack,
+danmu ICU data, JIT/native WebAssembly, HTTP/HTTPS/TLS, HTTP/2,
+QUIC/HTTP/3 with mandatory ECH, DNS/crypto, zlib/Brotli/zstd,
+workers/child processes, async context, filesystem/module loading, VM,
+AsyncLocalStorage and Node-API exports. It trims npm/Corepack,
 Amaro, Inspector, SQLite/Web Storage, SEA, V8 object-print helpers, FFI and
-V8 Temporal. ECH is not provided. These choices match danmu_api and its
-locked App dependencies rather than a general-purpose Node distribution.
+V8 Temporal. OpenSSL 4 ECH is exposed for mandatory TLS and QUIC client use;
+an ECH-configured connection never falls back to plaintext SNI. These choices
+match danmu_api and its locked App dependencies rather than a general-purpose
+Node distribution.
 
 ## Build or release
 

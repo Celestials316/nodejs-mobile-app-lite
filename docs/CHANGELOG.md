@@ -49,8 +49,10 @@
   pinned to `fe34c8eae5514797d6dc21a4bdec39c9913d9322`.
 - Use upstream OpenSSL 4.1.0 and V8 15.6; keep Android API24 and the three
   App ABIs (arm64-v8a, armeabi-v7a, x86_64) with NDK r29.
-- Preserve the danmu ICU profile, QUIC/HTTP/3, JIT/native WASM, network/TLS,
-  crypto, compression, workers/processes, async context, VM and Node-API.
+- Preserve the danmu ICU profile, QUIC/HTTP/3 with mandatory ECH,
+  JIT/native WASM, network/TLS, crypto, compression, workers/processes, async
+  context, VM and Node-API. ECH-configured TLS and QUIC never fall back to
+  plaintext SNI.
 - Trim npm/Corepack, Amaro, Inspector, SQLite/Web Storage, SEA, object-print
   helpers, FFI and V8 Temporal.
 - Retire three Node-24-specific test/CI/document patches that no longer

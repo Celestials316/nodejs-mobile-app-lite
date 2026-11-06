@@ -35,14 +35,15 @@ measures data only, not a complete newly compiled libnode or compressed ZIP.
 ## Other lite subtractions
 
 Lite removes Amaro, Inspector, SQLite/Web Storage, SEA executable packaging
-and V8 native-debugger object-print support. Node 26 lite also removes Temporal
-and FFI. Core JS/MJS/CJS modules and the pure `@dan-uni/dan-any` UniDB do not
+and V8 native-debugger object-print support. Lite also removes Temporal and
+FFI. Core JS/MJS/CJS modules and the pure `@dan-uni/dan-any` UniDB do not
 require these features. OpenCC remains a JavaScript dependency.
 
-Keep HTTP/HTTPS/TLS/crypto, DNS, fetch/Undici, WebAssembly, compression including
-Brotli/zstd, filesystem/module loading, streams, AsyncLocalStorage and the
-existing Worker/child-process APIs. WASI/HTTP2 are not separately trimmed in
-this change; Undici itself references node:http2.
+Keep HTTP/HTTPS/TLS/crypto, mandatory ECH with QUIC/HTTP/3, DNS, fetch/Undici,
+WebAssembly, compression including Brotli/zstd, filesystem/module loading,
+streams, AsyncLocalStorage and the existing Worker/child-process APIs.
+WASI/HTTP2 are not separately trimmed in this change; Undici itself
+references node:http2.
 
 Android retains JIT/native WASM. Lite uses pointer compression only on 64-bit
 Android; it primarily reduces heap memory and changes the direct V8-addon ABI.
@@ -77,9 +78,11 @@ ICU profile selection, and runs shipped ICU regressions on host Node.
 
 Both platform boot smokes check all 39 canonical TextDecoder encodings,
 streaming/multibyte examples, retained locale APIs, normalization, IDNA and
-time zones. Lite additionally verifies that unselected locale data was
-actually removed. Node 26 full still exercises native FFI calls/callbacks and
-Temporal timezone behavior; lite asserts those features are absent.
+time zones. The Android App gates also verify mandatory ECH rejection behavior
+for TLS and QUIC in addition to the native H3 round trip. Lite additionally
+verifies that unselected locale data was actually removed. Node 26 full still
+exercises native FFI calls/callbacks and Temporal timezone behavior; lite
+asserts those features are absent.
 
 Before publishing, complete cross-compilation and device gates and measure
 actual new artifacts. Previously published archives and either app's pinned

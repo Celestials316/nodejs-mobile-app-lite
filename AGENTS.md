@@ -22,16 +22,20 @@ Publication checks repository identity, uses an `app-lite-v` tag prefix, and
 does not overwrite published releases.
 
 Preserve JIT/native WebAssembly, all current danmu ICU data, HTTP/HTTPS/TLS,
-HTTP/2, DNS/crypto, compression, workers/child_process, async context,
-fs/module loading, VM, Node-API and node::Start. Do not narrow dynamic
+HTTP/2, mandatory ECH/HTTP/3, DNS/crypto, compression,
+workers/child_process, async context, fs/module loading, VM, Node-API and
+node::Start. Do not narrow dynamic
 exports or reduce these capabilities based only on today's direct imports.
 Keep 16 KB LOAD alignment, RELRO/NOW and Android API24 compatibility. APS2 is
 supported from API23; RELR would raise the minimum version and is forbidden.
 
 Node 27 is an upstream alpha. Keep OpenSSL 4.1.0 and upstream V8 metadata
 visible in test output, and do not describe this SDK as stable or production
-ready. The reviewed trims are npm/Corepack, Amaro, Inspector, SQLite/Web
-Storage, SEA, V8 object-print helpers, FFI and V8 Temporal. Do not transfer
+ready. Keep the reviewed OpenSSL 4 ECH client patch (`tls.ECH_SUPPORTED`,
+`echConfigList`, `echAccepted`, QUIC `opened.echAccepted`) and its mandatory,
+no-plaintext-fallback behavior; danmu_api requires ECH/H3. The reviewed trims
+are npm/Corepack, Amaro, Inspector, SQLite/Web Storage, SEA, V8 object-print
+helpers, FFI and V8 Temporal. Do not transfer
 upstream test status adaptations from the Node 24 branch without reviewing
 them against Node 27.
 

@@ -28,7 +28,11 @@ The test status patch and upstream workflow/document removal patches from
 Node 24 were retired: they conflicted with Node 27 and do not contribute to
 the App runtime. The test harness patch is retained because the emulator App
 uses it. The QUIC default remains behind `OPENSSL_NO_QUIC`; FFI and Temporal
-are disabled because danmu_api does not use them.
+are disabled because danmu_api does not use them. The App does use ECH/H3, so
+the reviewed Node 26 OpenSSL 4 ECH client patch was ported to Node 27 and the
+first server QUIC read-time fix was retained. ECH-configured TLS and QUIC
+connections require authenticated acceptance and never fall back to plaintext
+SNI.
 
 Node 27's V8 needs a Clang 19.1+ host toolchain for C++20 features that the
 runner's default Clang 18 does not implement. CI installs Clang 20 and the
@@ -41,7 +45,8 @@ used by one V8 layout assertion, so that non-functional assertion is
 feature-gated. None of these changes alter libnode behavior or data layout.
 
 The runtime gate checks that `process.versions.mobile` retains the upstream
-prerelease metadata before the mobile rebuild suffix. OpenSSL 4.1 and QUIC/
-HTTP/3 behavior are validated on the API24 emulator. A successful SDK build
+prerelease metadata before the mobile rebuild suffix. OpenSSL 4.1, ECH
+rejection without application-data leakage, QUIC/HTTP/3 and the native H3
+round trip are validated on the API24 emulator. A successful SDK build
 is not a claim that Node 27 is ready for the App: rebuild the JNI bridge and
 run the App's startup/core tests before replacing Node 26.

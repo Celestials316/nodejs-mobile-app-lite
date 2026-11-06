@@ -11,12 +11,14 @@ snapshot, not a stable production runtime.
   fetch and node-fetch behavior is preserved; H3 uses its explicit API.
 - Keep the complete ICU API with the reviewed danmu data profile, all web
   encodings including GBK/Big5, Chinese collation and Unicode normalization.
-- Preserve JIT/native WebAssembly, HTTP/HTTPS/TLS/HTTP2, crypto, DNS,
-  compression, workers, external processes, filesystem/module loading, VM
-  and Node-API exports.
+- Preserve JIT/native WebAssembly, HTTP/HTTPS/TLS/HTTP2, mandatory ECH with
+  QUIC/HTTP3, crypto, DNS, compression, workers, external processes,
+  filesystem/module loading, VM and Node-API exports.
 - Omit npm/Corepack, the iOS polywasm fallback, Amaro, Inspector,
   SQLite/Web Storage, SEA, V8 object-print helpers, FFI and V8 Temporal.
-  ECH is not included.
+- Expose the reviewed OpenSSL 4 ECH client API for TLS and QUIC. Configured ECH
+  is mandatory, requires certificate verification and never falls back to
+  plaintext SNI.
 - Build with Clang 20 host tools from LLVM's official apt repository (Node 27
   requires Clang 19.1+) and the pinned NDK r29 cross compiler.
 - Use API23-compatible APS2 relocation packing and ABI-preserving SDK

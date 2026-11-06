@@ -58,6 +58,17 @@ class PrivateProfile(unittest.TestCase):
         self.assertNotIn('SimdShuffle::ShuffleArray shuffle_bytes;',source)
         page=(SOURCE/'deps/v8/src/heap/mutable-page.cc').read_text()
         self.assertIn('#if defined(__cpp_lib_hardware_interference_size)',page)
+    def test_node27_ech_patch_and_device_gates(self):
+        self.assertTrue((SOURCE/'src/crypto/crypto_ech.h').is_file())
+        self.assertIn('ECH_SUPPORTED',(SOURCE/'lib/tls.js').read_text())
+        self.assertIn('setECHConfigList',(SOURCE/'src/crypto/crypto_tls.cc').read_text())
+        self.assertIn('ech_accepted',(SOURCE/'src/quic/session.cc').read_text())
+        self.assertIn('echConfigList',(SOURCE/'lib/internal/quic/quic.js').read_text())
+        self.assertIn('ECH_SUPPORTED',(SOURCE/'tools/mobile-test/private-app/runtime-smoke.cjs').read_text())
+        self.assertIn('QUIC ECH must not fall back',(SOURCE/'tools/mobile-test/private-app/h3-smoke.mjs').read_text())
+        series=(ROOT/'patches/series').read_text()
+        self.assertIn('src-expose-required-ECH-for-TLS-and-QUIC-clients.patch',series)
+        self.assertIn('src-fix-QUIC-receive-time-after-session-creation.patch',series)
     def test_workflow_only_private_android_lite_and_gated_publication(self):
         import yaml
         names=sorted(p.name for p in (ROOT/'.github/workflows').glob('*.yml'))
