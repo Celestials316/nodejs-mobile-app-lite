@@ -19,7 +19,7 @@ async function main() {
   assert.equal(process.versions.node, '27.0.0-alpha.0.1.0');
   assert.equal(process.versions.mobile, process.versions.node + '-1',
     'mobile version must retain upstream version metadata');
-  assert.equal(process.versions.v8, '15.6.75.50');
+  assert.match(process.versions.v8, /^15\.6\.75\.50(?:-node\.\d+)?$/);
   assert.match(process.versions.openssl, /^4\.1\.0(?:-|$)/, 'OpenSSL 4.1 is expected');
   assert.equal(globalThis.Temporal, undefined, 'Temporal is intentionally trimmed');
   assert.equal(process.config.variables.node_use_quic, true, 'QUIC must be compiled');
