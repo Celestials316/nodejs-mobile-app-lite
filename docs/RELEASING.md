@@ -6,7 +6,7 @@ so standard runners are free; the recipe and published assets are
 world-readable). Select `build` to retain tested artifacts without publishing,
 or `build-and-release` to publish a tested private prerelease in the same run.
 The default is `build`; publication must be requested explicitly. Optional
-`release_tag` selects an unused `app-lite-v27.0.0-0[-suffix]` tag; empty uses
+`release_tag` selects an unused `app-lite-v27.0.0-1[-suffix]` tag; empty uses
 this workflow's unique run ID. `release_notes` appends optional English notes
 to the reviewed notes file.
 

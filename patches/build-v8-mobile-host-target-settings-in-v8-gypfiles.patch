@@ -46,10 +46,10 @@ index 058580f2ab..cf1255841f 100644
      'configurations': {
        'Debug': {
 diff --git a/tools/v8_gypfiles/v8.gyp b/tools/v8_gypfiles/v8.gyp
-index 71b6772bc3..caf98a56df 100644
+index a3166cae56..46ef3a7336 100644
 --- a/tools/v8_gypfiles/v8.gyp
 +++ b/tools/v8_gypfiles/v8.gyp
-@@ -898,6 +898,15 @@
+@@ -895,6 +895,15 @@
        'direct_dependent_settings': {
          'sources': ['<!@pymod_do_main(GN-scraper "<(V8_ROOT)/BUILD.gn"  "v8_compiler_sources = ")'],
          'conditions': [
@@ -65,7 +65,7 @@ index 71b6772bc3..caf98a56df 100644
            ['v8_target_arch=="ia32"', {
              'sources': [
                '<!@pymod_do_main(GN-scraper "<(V8_ROOT)/BUILD.gn"  "v8_compiler_sources =.*?v8_current_cpu == \\"x86\\".*?v8_compiler_sources \\+= ")',
-@@ -960,6 +969,11 @@
+@@ -957,6 +966,11 @@
        'target_name': 'v8_compiler_for_mksnapshot_source_set',
        'type': 'static_library',
        'toolsets': ['host', 'target'],
@@ -75,9 +75,9 @@ index 71b6772bc3..caf98a56df 100644
 +      # wrongly stubbed this target too (that configuration is never built
 +      # upstream) and omitted the fp16/abseil deps its include paths need.
        'dependencies': [
-         'generate_bytecode_builtins_list',
-         'run_torque',
-@@ -969,13 +983,9 @@
+         'generate_bytecode_builtins_list#target',
+         'run_torque#target',
+@@ -966,13 +980,9 @@
          'v8_libbase',
          'v8_shared_internal_headers',
          'v8_pch',
@@ -94,7 +94,7 @@ index 71b6772bc3..caf98a56df 100644
        ],
      },  # v8_compiler_for_mksnapshot_source_set
      {
-@@ -998,11 +1008,12 @@
+@@ -995,11 +1005,12 @@
              '<(perfetto_gyp_file):perfetto_sdk',
            ],
          }],
@@ -112,7 +112,7 @@ index 71b6772bc3..caf98a56df 100644
          ['v8_enable_turbofan==1', {
            'dependencies': ['v8_compiler_sources'],
          }, {
-@@ -1260,7 +1271,7 @@
+@@ -1257,7 +1268,7 @@
            'conditions': [
              ['v8_enable_webassembly==1', {
                'conditions': [
@@ -121,7 +121,7 @@ index 71b6772bc3..caf98a56df 100644
                    'sources': [
                      '<(V8_ROOT)/src/trap-handler/handler-inside-posix.cc',
                      '<(V8_ROOT)/src/trap-handler/handler-outside-posix.cc',
-@@ -1397,7 +1408,8 @@
+@@ -1394,7 +1405,8 @@
          # Platforms that don't have Compare-And-Swap (CAS) support need to link atomic library
          # to implement atomic memory access.
          # Clang needs it for some atomic operations (https://clang.llvm.org/docs/Toolchain.html#atomics-library).
@@ -131,7 +131,7 @@ index 71b6772bc3..caf98a56df 100644
            'link_settings': {
              'libraries': ['-latomic', ],
            },
-@@ -1587,6 +1599,8 @@
+@@ -1584,6 +1596,8 @@
              '<(V8_ROOT)/src/base/platform/platform-posix.h',
              '<(V8_ROOT)/src/base/platform/platform-posix-time.cc',
              '<(V8_ROOT)/src/base/platform/platform-posix-time.h',
@@ -140,7 +140,7 @@ index 71b6772bc3..caf98a56df 100644
            ],
            'link_settings': {
              'target_conditions': [
-@@ -1599,9 +1613,18 @@
+@@ -1596,9 +1610,18 @@
            },
            'target_conditions': [
              ['_toolset=="host"', {
@@ -162,7 +162,7 @@ index 71b6772bc3..caf98a56df 100644
                ],
              }, {
                'sources': [
-@@ -2210,12 +2233,14 @@
+@@ -2207,12 +2230,14 @@
              ],
            }, { # 'OS!="win"'
              'conditions': [
@@ -179,7 +179,7 @@ index 71b6772bc3..caf98a56df 100644
                  'sources': [
                    '<(V8_ROOT)/src/heap/base/asm/ia32/push_registers_asm.cc',
                  ],
-@@ -2437,6 +2462,46 @@
+@@ -2434,6 +2459,46 @@
        },
      },  # postmortem-metadata
  
@@ -226,7 +226,7 @@ index 71b6772bc3..caf98a56df 100644
      {
        'target_name': 'v8_zlib',
        'type': 'static_library',
-@@ -2451,6 +2516,10 @@
+@@ -2448,6 +2513,10 @@
              }]
            ]
          }],

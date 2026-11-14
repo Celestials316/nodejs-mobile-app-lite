@@ -2,15 +2,15 @@
 
 Private runtime recipe in `Celestials316/nodejs-mobile-app-lite` (account 2)
 for the owner's Android `danmu_api` App. The `recipe-v27` branch builds
-**Node.js 27.0.0-alpha.0.0.0 lite for Android only**, for arm64-v8a,
+**Node.js 27.0.0-alpha.0.1.0 lite for Android only**, for arm64-v8a,
 armeabi-v7a and x86_64. The existing `recipe` branch remains the Node 24 line.
 This branch does not build iOS or full SDKs.
 
 The source is pinned to the official Node 27 alpha tag commit
-`fe34c8eae5514797d6dc21a4bdec39c9913d9322`. It bundles upstream OpenSSL
-4.1.0 and V8 15.6. The App-specific mobile revision is `27.0.0-0`. This is an
-experimental alpha, not a stable Node Current release. The verified tree is
-recorded in `expected-tree.txt`.
+`dd138afdd6f2edfff2153c0b964a56f0ae8de7e0`. It bundles upstream OpenSSL
+4.1.0 and V8 15.6.75.50. The App-specific mobile revision is `27.0.0-1`.
+This is an experimental alpha, not a stable Node Current release. The
+verified tree is recorded in `expected-tree.txt`.
 
 The lite profile keeps native QUIC/HTTP/3 (enabled by default), the reviewed
 danmu ICU data, JIT/native WebAssembly, HTTP/HTTPS/TLS, HTTP/2,
@@ -32,8 +32,8 @@ Open Actions → **Private Android App lite** → **Run workflow** on
   This is the default manual operation and does not publish a release.
 - `build-and-release` runs the same build/test gates, then publishes a
   private prerelease. It must be requested explicitly.
-- Leave `release_tag` empty for a unique `app-lite-v27.0.0-0-build.<run>` tag,
-  or enter an unused tag beginning `app-lite-v27.0.0-0`.
+- Leave `release_tag` empty for a unique `app-lite-v27.0.0-1-build.<run>` tag,
+  or enter an unused tag beginning `app-lite-v27.0.0-1`.
 - Optionally supply additional English release notes. Existing tags and
   published releases are never overwritten.
 
@@ -43,7 +43,7 @@ API24 emulator session for runtime, ICU/locale, App dependency, HTTP/3 and
 native-addon gates. The unadapted upstream curated suite is not used on the
 alpha branch.
 
-The package is `nodejs-mobile-android-app-lite-27.0.0-0.zip`, with the
+The package is `nodejs-mobile-android-app-lite-27.0.0-1.zip`, with the
 `bin/<abi>/libnode.so` and `include/node/` layout used by the App. It includes
 `BUILD-INFO.json`, LICENSE and a separate `SHA256SUMS` file. Temporary ABI
 artifacts/logs expire after one day; the tested SDK artifact expires after

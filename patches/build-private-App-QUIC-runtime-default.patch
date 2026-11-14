@@ -10,11 +10,11 @@ App startup arguments. The explicit disabling flag remains supported.
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/src/node_options.h b/src/node_options.h
-index f8aa582538..47e73e9568 100644
+index 14f0cc024e..b19a2ff20b 100644
 --- a/src/node_options.h
 +++ b/src/node_options.h
-@@ -220,7 +220,13 @@ class EnvironmentOptions : public Options {
-   DEFINE_BOOL_FIELD(sea_vfs_archive) = false;
+@@ -228,7 +228,13 @@ class EnvironmentOptions : public Options {
+   DEFINE_BOOL_FIELD(sea_vfs) = false;
    DEFINE_BOOL_FIELD(webstorage) = HAVE_SQLITE;
    DEFINE_BOOL_FIELD(experimental_dtls) = EXPERIMENTALS_DEFAULT_VALUE;
 -  DEFINE_BOOL_FIELD(experimental_quic) = EXPERIMENTALS_DEFAULT_VALUE;

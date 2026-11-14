@@ -21,10 +21,10 @@ Co-authored-by: Julia Samól <j.samol@papers.ch>
  2 files changed, 35 insertions(+), 7 deletions(-)
 
 diff --git a/node.gyp b/node.gyp
-index 1141736d3c..00e812c134 100644
+index 9c0b270ea5..f9335512ca 100644
 --- a/node.gyp
 +++ b/node.gyp
-@@ -945,6 +945,12 @@
+@@ -947,6 +947,12 @@
              'HAVE_DTLS=1',
            ],
          }],
@@ -37,7 +37,7 @@ index 1141736d3c..00e812c134 100644
          [ 'use_openssl_def==1', {
            # TODO(bnoordhuis) Make all platforms export the same list of symbols.
            # Teach mkssldef.py to generate linker maps that UNIX linkers understand.
-@@ -1071,6 +1077,12 @@
+@@ -1068,6 +1074,12 @@
        ],
  
        'conditions': [
@@ -50,7 +50,7 @@ index 1141736d3c..00e812c134 100644
          [ 'node_builtin_modules_path!=""', {
            # When loading builtins from disk, JS source files do not need to
            # trigger rebuilds since the binary reads them at runtime.
-@@ -1440,8 +1452,9 @@
+@@ -1437,8 +1449,9 @@
          ['OS=="solaris"', {
            'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
          }],
@@ -62,7 +62,7 @@ index 1141736d3c..00e812c134 100644
            'type': 'none',
          }],
          [ 'node_shared=="true"', {
-@@ -1602,7 +1615,8 @@
+@@ -1599,7 +1612,8 @@
          [ 'node_shared_libuv=="false"', {
            'dependencies': [ 'deps/uv/uv.gyp:libuv#host' ],
          }],

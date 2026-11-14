@@ -2,12 +2,12 @@
 
 ## Pin
 
-- Tag: `v27.0.0-alpha.0.0.0`
-- Commit: `fe34c8eae5514797d6dc21a4bdec39c9913d9322`
-- Node: `27.0.0-alpha.0.0.0`
-- V8: `15.6.75.13`
+- Tag: `v27.0.0-alpha.0.1.0`
+- Commit: `dd138afdd6f2edfff2153c0b964a56f0ae8de7e0`
+- Node: `27.0.0-alpha.0.1.0`
+- V8: `15.6.75.50`
 - OpenSSL: `4.1.0`
-- Upstream release date: `2026-10-29`
+- Upstream release date: `2026-11-12`
 
 The official Node.js release schedule places Node 27 Current in April 2027;
 this alpha is experimental and may change ABI, diagnostics, test status or
@@ -33,6 +33,11 @@ the reviewed Node 26 OpenSSL 4 ECH client patch was ported to Node 27 and the
 first server QUIC read-time fix was retained. ECH-configured TLS and QUIC
 connections require authenticated acceptance and never fall back to plaintext
 SNI.
+
+The `alpha.0.1.0` update rebases the same 22-patch stack onto upstream's
+TLS/HTTP/2/QUIC fixes, X.509 and DNS updates, V8 `15.6.75.50`, nghttp2 1.71.0
+and ngtcp2 1.26.0. OpenSSL remains 4.1.0. The runtime gate now checks the exact
+Node, V8 and mobile metadata so a stale cached runtime cannot pass.
 
 Node 27's V8 needs a Clang 19.1+ host toolchain for C++20 features that the
 runner's default Clang 18 does not implement. CI installs Clang 20 and the

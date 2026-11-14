@@ -6,6 +6,7 @@
 </tr>
 <tr>
 <td>
+<a href="#27.0.0-1">27.0.0-1 (private App alpha)</a><br/>
 <a href="#27.0.0-0">27.0.0-0 (private App alpha)</a><br/>
 <a href="#24.22.0-1">24.22.0-1 (private App)</a><br/>
 <a href="#24.22.0-0">24.22.0-0</a><br/>
@@ -41,6 +42,23 @@
 </td>
 </tr>
 </table>
+
+<a id="27.0.0-1"></a>
+## 2026-11-14, Version 27.0.0-1 (Private Android App alpha)
+
+- Update the Android App lite runtime to Node.js 27.0.0-alpha.0.1.0, pinned
+  to `dd138afdd6f2edfff2153c0b964a56f0ae8de7e0`.
+- Rebase the reviewed 22-patch mobile series onto the new alpha. It includes
+  upstream TLS, HTTP/2, QUIC, X.509, DNS, stream and Node-API fixes, plus V8
+  15.6.75.50, nghttp2 1.71.0 and ngtcp2 1.26.0; OpenSSL remains 4.1.0.
+- Keep the Android API24 App profile and its existing reductions. Preserve
+  danmu ICU data, JIT/native WebAssembly, mandatory ECH and HTTP/3,
+  HTTP/HTTPS/TLS/HTTP2, fetch/node-fetch, DNS/crypto, compression,
+  workers/processes, async context, filesystem/module loading, VM and
+  Node-API.
+- Require the exact upstream Node, V8 and `27.0.0-alpha.0.1.0-1` mobile
+  metadata in the API24 runtime gate. This is still an experimental alpha,
+  not a stable or production-ready Node release.
 
 <a id="27.0.0-0"></a>
 ## 2026-11-05, Version 27.0.0-0 (Private Android App alpha)

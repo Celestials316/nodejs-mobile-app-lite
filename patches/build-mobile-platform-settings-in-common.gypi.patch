@@ -23,7 +23,7 @@ Co-authored-by: João Matos <joao@tritao.eu>
  1 file changed, 120 insertions(+), 4 deletions(-)
 
 diff --git a/common.gypi b/common.gypi
-index a8dbd9ba13..5914a32e91 100644
+index f8588b8231..4221f4c8d1 100644
 --- a/common.gypi
 +++ b/common.gypi
 @@ -117,7 +117,7 @@
@@ -68,7 +68,7 @@ index a8dbd9ba13..5914a32e91 100644
          'xcode_settings': {
            'OTHER_CFLAGS+': [
              '-fno-omit-frame-pointer',
-@@ -622,11 +639,18 @@
+@@ -629,11 +646,18 @@
            }],
            ['_toolset=="host"', {
              'conditions': [
@@ -89,7 +89,7 @@ index a8dbd9ba13..5914a32e91 100644
                  'cflags': [ '-m64' ],
                  'ldflags': [ '-m64' ],
                }],
-@@ -808,6 +832,98 @@
+@@ -815,6 +839,98 @@
            }],
          ],
        }],

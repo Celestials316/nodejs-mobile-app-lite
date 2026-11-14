@@ -24,10 +24,10 @@ Assisted-by: Codex
  9 files changed, 132 insertions(+), 6 deletions(-)
 
 diff --git a/lib/internal/quic/quic.js b/lib/internal/quic/quic.js
-index 6603bd4528..9cbec4d328 100644
+index 683eba6925..ba1da56e3e 100644
 --- a/lib/internal/quic/quic.js
 +++ b/lib/internal/quic/quic.js
-@@ -818,18 +818,20 @@ setCallbacks({
+@@ -819,18 +819,20 @@ setCallbacks({
     * @param {number} validationErrorCode
     * @param {boolean} earlyDataAttempted
     * @param {boolean} earlyDataAccepted
@@ -51,7 +51,7 @@ index 6603bd4528..9cbec4d328 100644
    },
  
    /**
-@@ -4190,9 +4192,13 @@ class QuicSession {
+@@ -4198,9 +4200,13 @@ class QuicSession {
     * @param {string} cipherVersion
     * @param {string} validationErrorReason
     * @param {number} validationErrorCode
@@ -66,7 +66,7 @@ index 6603bd4528..9cbec4d328 100644
      const inner = this.#inner;
      if (this.destroyed || !inner.pendingOpen.resolve) return;
  
-@@ -4213,6 +4219,7 @@ class QuicSession {
+@@ -4221,6 +4227,7 @@ class QuicSession {
        validationErrorCode,
        earlyDataAttempted,
        earlyDataAccepted,
@@ -74,7 +74,7 @@ index 6603bd4528..9cbec4d328 100644
      };
  
      // Stash timing-relevant handshake info for the perf entry detail.
-@@ -5214,6 +5221,7 @@ function processIdentityOptions(identity, label) {
+@@ -5222,6 +5229,7 @@ function processIdentityOptions(identity, label) {
  function processTlsOptions(tls, forServer) {
    const {
      servername,
@@ -82,7 +82,7 @@ index 6603bd4528..9cbec4d328 100644
      alpn,
      ciphers = DEFAULT_CIPHERS,
      groups = DEFAULT_GROUPS,
-@@ -5235,6 +5243,16 @@ function processTlsOptions(tls, forServer) {
+@@ -5243,6 +5251,16 @@ function processTlsOptions(tls, forServer) {
    if (servername !== undefined) {
      validateString(servername, 'options.servername');
    }
@@ -99,7 +99,7 @@ index 6603bd4528..9cbec4d328 100644
    if (ciphers !== undefined) {
      validateString(ciphers, 'options.ciphers');
    }
-@@ -5347,6 +5365,7 @@ function processTlsOptions(tls, forServer) {
+@@ -5355,6 +5373,7 @@ function processTlsOptions(tls, forServer) {
    const shared = {
      __proto__: null,
      servername,
@@ -108,10 +108,10 @@ index 6603bd4528..9cbec4d328 100644
      ciphers,
      groups,
 diff --git a/lib/internal/tls/wrap.js b/lib/internal/tls/wrap.js
-index 82f343de72..64085d39ed 100644
+index 4e295d9f8c..16bba2517f 100644
 --- a/lib/internal/tls/wrap.js
 +++ b/lib/internal/tls/wrap.js
-@@ -1768,6 +1768,16 @@ function normalizeConnectArgs(listArgs) {
+@@ -1776,6 +1776,16 @@ function normalizeConnectArgs(listArgs) {
    return cb ? [options, cb] : [options];
  }
  
@@ -128,7 +128,7 @@ index 82f343de72..64085d39ed 100644
  function onConnectSecure() {
    const options = this[kConnectOptions];
  
-@@ -1817,6 +1827,10 @@ function onConnectSecure() {
+@@ -1825,6 +1835,10 @@ function onConnectSecure() {
      this.authorized = true;
      debug('client emit secureConnect. authorized:', this.authorized);
    }
@@ -139,7 +139,7 @@ index 82f343de72..64085d39ed 100644
    this.secureConnecting = false;
    this.emit('secureConnect');
  
-@@ -1867,6 +1881,21 @@ exports.connect = function connect(...args) {
+@@ -1875,6 +1889,21 @@ exports.connect = function connect(...args) {
    validateFunction(options.checkServerIdentity, 'options.checkServerIdentity');
    validateNumber(options.minDHSize, 'options.minDHSize', 1);
  
@@ -161,7 +161,7 @@ index 82f343de72..64085d39ed 100644
    const context = options.secureContext || tls.createSecureContext(options);
  
    if (options.servername && net.isIP(options.servername)) {
-@@ -1917,6 +1946,13 @@ exports.connect = function connect(...args) {
+@@ -1925,6 +1954,13 @@ exports.connect = function connect(...args) {
    if (options.servername)
      tlssock.setServername(options.servername);
  
@@ -176,7 +176,7 @@ index 82f343de72..64085d39ed 100644
      // If user provided the socket, it's their responsibility to manage its
      // connectivity. If we created one internally, we connect it.
 diff --git a/lib/tls.js b/lib/tls.js
-index ba395be5eb..36cd0a16d1 100644
+index 288d783721..4cf8d34e0c 100644
 --- a/lib/tls.js
 +++ b/lib/tls.js
 @@ -21,6 +21,9 @@
@@ -190,7 +190,7 @@ index ba395be5eb..36cd0a16d1 100644
    Array,
    ArrayIsArray,
 diff --git a/src/crypto/crypto_tls.cc b/src/crypto/crypto_tls.cc
-index 5792de0515..9aa49a66a2 100644
+index a0e883f00b..de7e58d323 100644
 --- a/src/crypto/crypto_tls.cc
 +++ b/src/crypto/crypto_tls.cc
 @@ -25,6 +25,7 @@
@@ -201,7 +201,7 @@ index 5792de0515..9aa49a66a2 100644
  #include "crypto/crypto_context.h"
  #include "crypto/crypto_util.h"
  #include "debug_utils-inl.h"
-@@ -1516,6 +1517,27 @@ void TLSWrap::GetServername(const FunctionCallbackInfo<Value>& args) {
+@@ -1559,6 +1560,27 @@ void TLSWrap::GetServername(const FunctionCallbackInfo<Value>& args) {
    }
  }
  
@@ -229,15 +229,15 @@ index 5792de0515..9aa49a66a2 100644
  void TLSWrap::SetServername(const FunctionCallbackInfo<Value>& args) {
    TLSWrap* wrap;
    ASSIGN_OR_RETURN_UNWRAP(&wrap, args.This());
-@@ -2351,6 +2373,7 @@ void TLSWrap::Initialize(
-   SetMethod(context, target, "wrap", TLSWrap::Wrap);
+@@ -2430,6 +2452,7 @@ void TLSWrap::Initialize(
+       context, target, "hasOpenSSLErrorForTesting", HasOpenSSLErrorForTesting);
  
    NODE_DEFINE_CONSTANT(target, HAVE_SSL_TRACE);
 +  NODE_DEFINE_CONSTANT(target, NODE_HAVE_ECH);
  
    Local<FunctionTemplate> t = AsyncWrap::MakeLazilyInitializedJSTemplate(env);
    Local<String> tlsWrapString =
-@@ -2389,6 +2412,8 @@ void TLSWrap::Initialize(
+@@ -2468,6 +2491,8 @@ void TLSWrap::Initialize(
    SetProtoMethod(isolate, t, "setKeyCert", SetKeyCert);
    SetProtoMethod(isolate, t, "setOCSPResponse", SetOCSPResponse);
    SetProtoMethod(isolate, t, "setServername", SetServername);
@@ -246,7 +246,7 @@ index 5792de0515..9aa49a66a2 100644
    SetProtoMethod(isolate, t, "setSession", SetSession);
    SetProtoMethod(isolate, t, "setVerifyMode", SetVerifyMode);
    SetProtoMethod(isolate, t, "start", Start);
-@@ -2461,6 +2486,8 @@ void TLSWrap::RegisterExternalReferences(ExternalReferenceRegistry* registry) {
+@@ -2542,6 +2567,8 @@ void TLSWrap::RegisterExternalReferences(ExternalReferenceRegistry* registry) {
    registry->Register(SetALPNProtocols);
    registry->Register(SetOCSPResponse);
    registry->Register(SetServername);
@@ -256,10 +256,10 @@ index 5792de0515..9aa49a66a2 100644
    registry->Register(SetVerifyMode);
    registry->Register(Start);
 diff --git a/src/crypto/crypto_tls.h b/src/crypto/crypto_tls.h
-index f3e0dfff9b..6e0787bf0d 100644
+index f49a4904f1..290086a705 100644
 --- a/src/crypto/crypto_tls.h
 +++ b/src/crypto/crypto_tls.h
-@@ -277,6 +277,8 @@ class TLSWrap : public AsyncWrap,
+@@ -281,6 +281,8 @@ class TLSWrap : public AsyncWrap,
    static void SetKeyCert(const v8::FunctionCallbackInfo<v8::Value>& args);
    static void SetOCSPResponse(const v8::FunctionCallbackInfo<v8::Value>& args);
    static void SetServername(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -281,10 +281,10 @@ index 7d424b9bf6..21e55af1f0 100644
    V(enable_datagrams, "enableDatagrams")                                       \
    V(enable_tls_trace, "tlsTrace")                                              \
 diff --git a/src/quic/session.cc b/src/quic/session.cc
-index ba672a3bee..4ea1d0eca8 100644
+index e0de45d13f..1213d2e67e 100644
 --- a/src/quic/session.cc
 +++ b/src/quic/session.cc
-@@ -3841,6 +3841,11 @@ bool Session::HandshakeCompleted() {
+@@ -3848,6 +3848,11 @@ bool Session::HandshakeCompleted() {
    DCHECK(!is_destroyed());
    DCHECK(!impl_->state()->handshake_completed);
  
@@ -296,7 +296,7 @@ index ba672a3bee..4ea1d0eca8 100644
    Debug(this, "Session handshake completed");
    impl_->state()->handshake_completed = 1;
    // This implies fully completing a handshake without setting hello_processed
-@@ -4123,7 +4128,8 @@ void Session::EmitHandshakeComplete() {
+@@ -4130,7 +4135,8 @@ void Session::EmitHandshakeComplete() {
        Undefined(isolate),  // Validation error reason
        Undefined(isolate),  // Validation error code
        Boolean::New(isolate, tls_session().early_data_was_attempted()),
