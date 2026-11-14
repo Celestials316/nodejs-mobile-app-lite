@@ -1,0 +1,110 @@
+#include <ncrypto.h>
+#include "crypto/crypto_bio.h"
+#include "crypto/crypto_keys.h"
+#include "crypto/crypto_rsa.h"
+#include "gtest/gtest.h"
+#include "node_options.h"
+#include "node_test_fixture.h"
+#include "openssl/err.h"
+
+using v8::Local;
+using v8::Object;
+using v8::String;
+
+/*
+ * This test verifies that an object created by LoadBIO supports BIO_tell
+ * and BIO_seek, otherwise PEM_read_bio_PrivateKey fails on some keys
+ * (if OpenSSL needs to rewind pointer between pem_read_bio_key()
+ * and pem_read_bio_key_legacy() inside PEM_read_bio_PrivateKey).
+ */
+class NodeCryptoEnv : public EnvironmentTestFixture {};
+
+TEST_F(NodeCryptoEnv, LoadBIO) {
+  v8::HandleScope handle_scope(isolate_);
+  Argv argv;
+  Env env{handle_scope, argv};
+  //  just put a random string into BIO
+  Local<String> key = String::NewFromUtf8(isolate_, "abcdef").ToLocalChecked();
+  ncrypto::BIOPointer bio(node::crypto::LoadBIO(*env, key));
+#ifndef OPENSSL_IS_BORINGSSL
+  const int ofs = 2;
+  ASSERT_EQ(BIO_seek(bio.get(), ofs), ofs);
+  ASSERT_EQ(BIO_tell(bio.get()), ofs);
+#endif
+  ASSERT_EQ(ERR_peek_error(), 0UL) << "There should not have left "
+                                      "any errors on the OpenSSL error stack\n";
+}
+
+TEST_F(NodeCryptoEnv, KeyObjectEqualsClearsErrorQueue) {
+  v8::HandleScope handle_scope(isolate_);
+  Argv argv;
+  Env env{handle_scope, argv};
+
+  ERR_clear_error();
+  auto result = node::LoadEnvironment(*env, R"JS(
+    const { generateKeyPairSync } = require('node:crypto');
+    const rsa = generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const ec = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    return rsa.publicKey.equals(ec.publicKey);
+  )JS")
+                    .ToLocalChecked();
+  EXPECT_TRUE(result->IsFalse());
+  EXPECT_EQ(ERR_peek_error(), 0UL);
+}
+
+TEST_F(NodeCryptoEnv, InvalidEcJwkClearsErrorQueue) {
+  v8::HandleScope handle_scope(isolate_);
+  Argv argv;
+  Env env{handle_scope, argv};
+
+  ERR_clear_error();
+  auto result = node::LoadEnvironment(*env, R"JS(
+    const { diffieHellman, generateKeyPairSync } = require('node:crypto');
+    const { privateKey } = generateKeyPairSync(
+      'ec', { namedCurve: 'P-256' });
+    try {
+      diffieHellman({
+        privateKey,
+        publicKey: {
+          key: {
+            kty: 'EC',
+            crv: 'P-256',
+            x: 'AAAA',
+            y: 'AAAA',
+          },
+          format: 'jwk',
+        },
+      });
+      return false;
+    } catch (error) {
+      return error.code === 'ERR_CRYPTO_INVALID_JWK';
+    }
+  )JS")
+                    .ToLocalChecked();
+  EXPECT_TRUE(result->IsTrue());
+  EXPECT_EQ(ERR_peek_error(), 0UL);
+}
+
+#if NCRYPTO_USE_OPENSSL_PROVIDER
+TEST_F(NodeCryptoEnv, ExportIncompleteRsaPrivateKeyAsJwk) {
+  v8::HandleScope handle_scope(isolate_);
+  Argv argv;
+  Env env{handle_scope, argv};
+
+  ncrypto::Rsa rsa;
+  auto n = ncrypto::BignumPointer::New();
+  auto e = ncrypto::BignumPointer::New();
+  ASSERT_TRUE(n.setWord(3233));
+  ASSERT_TRUE(e.setWord(17));
+  ASSERT_TRUE(rsa.setPublicKey(std::move(n), std::move(e)));
+
+  auto pkey = ncrypto::EVPKeyPointer::NewRSA(rsa);
+  ASSERT_TRUE(pkey);
+  auto key = node::crypto::KeyObjectData::CreateAsymmetric(
+      node::crypto::kKeyTypePrivate, std::move(pkey));
+
+  v8::TryCatch try_catch(isolate_);
+  EXPECT_FALSE(node::crypto::ExportJWKRsaKey(*env, key, Object::New(isolate_)));
+  EXPECT_TRUE(try_catch.HasCaught());
+}
+#endif
