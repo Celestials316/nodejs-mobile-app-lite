@@ -1,16 +1,16 @@
-# Private Android App lite 27.0.0-1 with HTTP/3
+# Private Android App lite 27.0.0-2 with HTTP/3
 
 This SDK is built exclusively for the owner's Android danmu_api App from
-Node.js 27.0.0-alpha.0.1.0, pinned to
-`dd138afdd6f2edfff2153c0b964a56f0ae8de7e0`. It is an experimental alpha
+Node.js 27.0.0-alpha.0.1.1, pinned to
+`6c7c89331d062a47d6fe3d16b3c00e4a3145826d`. It is an experimental alpha
 snapshot, not a stable production runtime.
 
 - Use upstream OpenSSL 4.1.0, V8 15.6.75.50, ngtcp2 1.26.0 and nghttp2
-  1.71.0; expose Node, OpenSSL, ngtcp2,
-  nghttp3 and mobile versions in the runtime gate.
-- Rebase the reviewed 22-patch App lite series onto the newer alpha and retain
-  upstream fixes across TLS, HTTP/2, QUIC, crypto, streams, module loading and
-  Node-API.
+  1.71.0, and update nghttp3 to 1.19.0. Expose Node, OpenSSL, ngtcp2, nghttp3
+  and mobile versions in the runtime gate.
+- Rebase the reviewed 22-patch App lite series onto the newer alpha. Retain
+  the V8 memory-reducer and retained-context backports relevant to the
+  long-running App server.
 - Add native QUIC/HTTP/3 and make node:quic available by default. Existing
   fetch and node-fetch behavior is preserved; H3 uses its explicit API.
 - Keep the complete ICU API with the reviewed danmu data profile, all web

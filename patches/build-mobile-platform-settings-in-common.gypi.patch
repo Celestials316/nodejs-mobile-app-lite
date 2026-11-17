@@ -23,7 +23,7 @@ Co-authored-by: João Matos <joao@tritao.eu>
  1 file changed, 120 insertions(+), 4 deletions(-)
 
 diff --git a/common.gypi b/common.gypi
-index f8588b8231..4221f4c8d1 100644
+index aee557e5e0..d300641dcc 100644
 --- a/common.gypi
 +++ b/common.gypi
 @@ -117,7 +117,7 @@
@@ -89,7 +89,7 @@ index f8588b8231..4221f4c8d1 100644
                  'cflags': [ '-m64' ],
                  'ldflags': [ '-m64' ],
                }],
-@@ -815,6 +839,98 @@
+@@ -832,6 +856,98 @@
            }],
          ],
        }],

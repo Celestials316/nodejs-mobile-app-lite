@@ -1,4 +1,4 @@
-# Node.js 27.0.0-alpha.0.1.0 (Alpha); experimental, not a stable Current line.
-# https://github.com/nodejs/node/releases/tag/v27.0.0-alpha.0.1.0
+# Node.js 27.0.0-alpha.0.1.1 (Alpha); experimental, not a stable Current line.
+# https://github.com/nodejs/node/releases/tag/v27.0.0-alpha.0.1.1
 # Pin the immutable upstream tag commit rather than following a moving branch.
-dd138afdd6f2edfff2153c0b964a56f0ae8de7e0
+6c7c89331d062a47d6fe3d16b3c00e4a3145826d

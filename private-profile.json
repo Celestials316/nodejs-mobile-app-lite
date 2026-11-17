@@ -17,5 +17,5 @@
   "native_wasm": true,
   "pointer_compression_64bit": true,
   "release_tag_prefix": "app-lite-v",
-  "source_base": "dd138afdd6f2edfff2153c0b964a56f0ae8de7e0"
+  "source_base": "6c7c89331d062a47d6fe3d16b3c00e4a3145826d"
 }

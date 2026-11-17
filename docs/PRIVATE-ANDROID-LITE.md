@@ -3,16 +3,17 @@
 ## Scope and provenance
 
 The repository is `Celestials316/nodejs-mobile-app-lite` (account 2). The
-`recipe-v27` branch builds only Node.js 27.0.0-alpha.0.1.0 Android lite, pinned
+`recipe-v27` branch builds only Node.js 27.0.0-alpha.0.1.1 Android lite, pinned
 to the official alpha tag commit
-`dd138afdd6f2edfff2153c0b964a56f0ae8de7e0`. The independent profile and
+`6c7c89331d062a47d6fe3d16b3c00e4a3145826d`. The independent profile and
 `app-lite-v` tags prevent mixing it with Node 24 or fogtape's public SDKs.
 Android API24 and the three ABIs used by the App are preserved:
 arm64-v8a, armeabi-v7a and x86_64. iOS and full builds are rejected.
 
-Node 27 alpha bundles OpenSSL 4.1.0 and V8 15.6.75.50. OpenSSL enables the
-HTTP/TLS stack and QUIC. This is experimental upstream code, not a stable
-Node Current release; integration decisions must treat it as alpha.
+Node 27 alpha bundles OpenSSL 4.1.0, V8 15.6.75.50 and nghttp3 1.19.0.
+OpenSSL enables the HTTP/TLS stack and QUIC. This is experimental upstream
+code, not a stable Node Current release; integration decisions must treat it
+as alpha.
 
 ## danmu_api reductions
 
