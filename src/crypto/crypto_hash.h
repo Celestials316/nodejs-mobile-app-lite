@@ -1,0 +1,111 @@
+#ifndef SRC_CRYPTO_CRYPTO_HASH_H_
+#define SRC_CRYPTO_CRYPTO_HASH_H_
+
+#if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
+
+#include "base_object.h"
+#include "crypto/crypto_keys.h"
+#include "crypto/crypto_util.h"
+#include "env.h"
+#include "memory_tracker.h"
+#include "v8.h"
+
+namespace node {
+namespace crypto {
+// Like ncrypto::Digest::FromName(), but caches provider implementations per
+// Environment so that later lookups do not have to fetch them again.
+const ncrypto::Digest GetDigest(Environment* env, const char* name);
+
+// GetDigest() for synchronous jobs. Jobs on the thread pool keep using
+// ncrypto::Digest::FromName(): there, the cache lowered Web Crypto digest and
+// HMAC throughput, because workers that finish sooner have to be woken up for
+// each new job more often.
+const ncrypto::Digest GetDigestForJob(Environment* env,
+                                      CryptoJobMode mode,
+                                      const char* name);
+
+// Returns an HMAC context to be keyed with md. Contexts for digests from
+// GetDigest() are duplicated from a cached template, so keying them does not
+// fetch HMAC or md again.
+ncrypto::HMACCtxPointer NewHmacContext(Environment* env,
+                                       const ncrypto::Digest& md);
+
+class Hash final : public BaseObject {
+ public:
+  static void Initialize(Environment* env, v8::Local<v8::Object> target);
+  static void RegisterExternalReferences(ExternalReferenceRegistry* registry);
+
+  void MemoryInfo(MemoryTracker* tracker) const override;
+  SET_MEMORY_INFO_NAME(Hash)
+  SET_SELF_SIZE(Hash)
+
+  bool HashInit(const EVP_MD* digest, v8::Maybe<unsigned int> xof_md_len);
+  bool HashInit(const EVP_MD* digest,
+                const CShakeOptions& options,
+                v8::Maybe<unsigned int> xof_md_len);
+  bool HashUpdate(const char* data, size_t len);
+
+  static void GetHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void GetCachedAliases(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void OneShotDigest(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+ protected:
+  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void HashUpdate(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void HashDigest(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+  Hash(Environment* env, v8::Local<v8::Object> wrap);
+
+ private:
+  ncrypto::EVPMDCtxPointer mdctx_{};
+  unsigned int md_len_ = 0;
+  ByteSource digest_;
+};
+
+struct HashConfig final : public MemoryRetainer {
+  ByteSource in;
+  ncrypto::Digest digest;
+  std::optional<CShakeOptions> options;
+  unsigned int length;
+
+  HashConfig() = default;
+
+  explicit HashConfig(HashConfig&& other) noexcept;
+
+  HashConfig& operator=(HashConfig&& other) noexcept;
+
+  void MemoryInfo(MemoryTracker* tracker) const override;
+  SET_MEMORY_INFO_NAME(HashConfig)
+  SET_SELF_SIZE(HashConfig)
+};
+
+struct HashTraits final {
+  using AdditionalParameters = HashConfig;
+  static constexpr const char* JobName = "HashJob";
+  static constexpr AsyncWrap::ProviderType Provider =
+      AsyncWrap::PROVIDER_HASHREQUEST;
+
+  static v8::Maybe<void> AdditionalConfig(
+      CryptoJobMode mode,
+      const v8::FunctionCallbackInfo<v8::Value>& args,
+      unsigned int offset,
+      HashConfig* params);
+
+  static bool DeriveBits(Environment* env,
+                         const HashConfig& params,
+                         ByteSource* out,
+                         CryptoJobMode mode,
+                         CryptoErrorStore* errors);
+
+  static v8::MaybeLocal<v8::Value> EncodeOutput(Environment* env,
+                                                const HashConfig& params,
+                                                ByteSource* out);
+};
+
+using HashJob = DeriveBitsJob<HashTraits>;
+
+}  // namespace crypto
+}  // namespace node
+
+#endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
+#endif  // SRC_CRYPTO_CRYPTO_HASH_H_
